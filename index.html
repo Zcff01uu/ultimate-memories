@@ -7,48 +7,65 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #fff5f8; text-align: center; padding: 20px; }
-        .box { max-width: 400px; margin: auto; background: white; padding: 25px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border: 1.5px solid #ffdae9; }
-        h1 { color: #d63384; font-size: 24px; }
-        .input-group { position: relative; margin: 10px 0; }
-        input { width: 85%; padding: 12px; border: 1px solid #fbcfe8; border-radius: 10px; outline: none; background: #fff9fb; }
-        .toggle-btn { position: absolute; right: 25px; top: 12px; cursor: pointer; color: #d63384; font-weight: bold; font-size: 12px; }
-        button { background: #d63384; color: white; border: none; padding: 12px; border-radius: 12px; cursor: pointer; width: 95%; font-weight: bold; margin-top: 15px; }
-        #gallery { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
-        img { width: 100%; height: 150px; object-fit: cover; border-radius: 15px; border: 2px solid white; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        body { font-family: 'Segoe UI', sans-serif; background: #fff5f8; text-align: center; padding: 10px; margin: 0; }
+        .box { max-width: 400px; margin: 20px auto; background: white; padding: 25px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); border: 1px solid #ffdae9; }
+        
+        /* Navigation Tabs */
+        .nav-bar { display: flex; justify-content: space-around; margin-bottom: 20px; background: #ffe4ef; border-radius: 12px; padding: 5px; }
+        .nav-item { cursor: pointer; padding: 10px 20px; border-radius: 10px; font-weight: bold; color: #d63384; transition: 0.3s; flex: 1; }
+        .nav-item.active { background: #d63384; color: white; }
+
+        h1 { color: #d63384; font-size: 22px; }
+        input[type="text"], input[type="password"] { width: 85%; padding: 12px; margin: 8px 0; border: 1px solid #fbcfe8; border-radius: 10px; outline: none; background: #fff9fb; }
+        
+        .main-btn { background: #d63384; color: white; border: none; padding: 14px; border-radius: 12px; cursor: pointer; width: 95%; font-weight: bold; margin-top: 10px; }
+        
+        /* Gallery Grid */
+        #gallery { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+        .gal-img { width: 100%; height: 160px; object-fit: cover; border-radius: 15px; border: 2px solid white; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        
         .hidden { display: none; }
-        .switch-link { color: #d63384; text-decoration: underline; cursor: pointer; margin-top: 15px; display: block; font-size: 14px; }
+        #status { color: #d63384; margin: 10px 0; font-weight: bold; }
+        .logout-btn { background: #888; color: white; border: none; padding: 8px 15px; border-radius: 8px; margin-top: 20px; font-size: 12px; cursor: pointer; }
     </style>
 </head>
 <body>
 
-<div class="box" id="auth-box">
-    <h1 id="title">🔒 Register Vault</h1>
-    <div class="input-group"><input type="text" id="phone" placeholder="Mobile Number"></div>
-    <div class="input-group">
-        <input type="password" id="pass" placeholder="Secret Password">
-        <span class="toggle-btn" onclick="togglePass()">SHOW</span>
-    </div>
-    <button id="btn" onclick="handleAuth()">Create Account</button>
-    <span class="switch-link" onclick="switchMode()">Already have an account? Login</span>
+<div class="box" id="auth-page">
+    <h1 id="auth-title">🔒 Private Vault</h1>
+    <input type="text" id="phone" placeholder="Mobile Number">
+    <input type="password" id="pass" placeholder="Secret Password">
+    <button class="main-btn" onclick="handleAuth()">Enter Vault</button>
+    <p onclick="toggleAuth()" style="cursor:pointer; color:#d63384; font-size:13px; margin-top:15px;">Naya account banayein / Login</p>
 </div>
 
-<div class="box hidden" id="app-box">
-    <h1>📸 My Memories</h1>
-    <p id="user-tag" style="color:#d63384; font-weight:bold;"></p>
-    <input type="file" id="filePicker" accept="image/*">
-    <button onclick="upload()">Upload Photo ✨</button>
-    <div id="status" style="margin-top:10px; color:#d63384;"></div>
-    <div id="gallery"></div>
+<div class="box hidden" id="app-page">
+    <div class="nav-bar">
+        <div class="nav-item active" id="tab-upload" onclick="showSection('upload')">📤 Upload</div>
+        <div class="nav-item" id="tab-gallery" onclick="showSection('gallery')">🖼️ Gallery</div>
+    </div>
+
+    <div id="section-upload">
+        <h1>Add New Memory</h1>
+        <p style="font-size:12px; color:#888;">Select a photo to save forever</p>
+        <input type="file" id="filePicker" accept="image/*" style="margin: 20px 0;">
+        <button class="main-btn" onclick="uploadImg()">Upload to Cloud ✨</button>
+        <div id="status"></div>
+    </div>
+
+    <div id="section-gallery" class="hidden">
+        <h1>Our Memories</h1>
+        <div id="gallery"></div>
+    </div>
+
+    <button class="logout-btn" onclick="location.reload()">Logout</button>
 </div>
 
 <script>
-    // Aapka Firebase Config jo image mein tha
     const firebaseConfig = {
         apiKey: "AIzaSyA7fMm1LjMOz4BefGk60cmMuSoFzBvJapg",
-        authDomain: "ultimatememories-64a97.firebaseapp.com",
-        projectId: "ultimatememories-64a97",
         databaseURL: "https://ultimatememories-64a97-default-rtdb.firebaseio.com",
+        projectId: "ultimatememories-64a97",
         appId: "1:513888704426:web:b1476d30698d45dd117dd3"
     };
 
@@ -56,59 +73,62 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    let isLogin = false; let user = null;
+    let isLogin = true; let user = null;
 
-    function togglePass() {
-        const p = document.getElementById('pass'); p.type = p.type === "password" ? "text" : "password";
-    }
-
-    function switchMode() {
+    function toggleAuth() {
         isLogin = !isLogin;
-        document.getElementById('title').innerText = isLogin ? "🔑 Login Vault" : "🔒 Register Vault";
-        document.getElementById('btn').innerText = isLogin ? "Login Now" : "Create Account";
+        document.getElementById('auth-title').innerText = isLogin ? "🔑 Login Vault" : "🔒 Register Vault";
     }
 
     function handleAuth() {
-        const ph = document.getElementById('phone').value; const ps = document.getElementById('pass').value;
+        const ph = document.getElementById('phone').value;
+        const ps = document.getElementById('pass').value;
         if(!ph || !ps) return alert("Details bharo!");
 
         if(isLogin) {
             db.ref('users/'+ph).once('value', s => {
-                if(s.exists() && s.val().password === ps) { startApp(ph); } 
-                else { alert("Galat details!"); }
+                if(s.exists() && s.val().password === ps) { user=ph; startApp(); }
+                else alert("Wrong details!");
             });
         } else {
-            db.ref('users/'+ph).set({password: ps}).then(() => { 
-                alert("Account ban gaya! Ab Login mode par switch karke andar jayein."); 
-                switchMode(); 
-            });
+            db.ref('users/'+ph).set({password: ps}).then(() => alert("Created! Now Login."));
         }
     }
 
-    function startApp(id) {
-        user = id; 
-        document.getElementById('auth-box').classList.add('hidden');
-        document.getElementById('app-box').classList.remove('hidden');
-        document.getElementById('user-tag').innerText = "Logged in as: " + id;
+    function startApp() {
+        document.getElementById('auth-page').classList.add('hidden');
+        document.getElementById('app-page').classList.remove('hidden');
         loadPhotos();
     }
 
-    async function upload() {
-        const file = document.getElementById('filePicker').files[0]; if(!file) return alert("Photo chuno!");
-        document.getElementById('status').innerText = "Saving your memory... ⏳";
+    function showSection(type) {
+        document.getElementById('section-upload').classList.toggle('hidden', type !== 'upload');
+        document.getElementById('section-gallery').classList.toggle('hidden', type !== 'gallery');
+        document.getElementById('tab-upload').classList.toggle('active', type === 'upload');
+        document.getElementById('tab-gallery').classList.toggle('active', type === 'gallery');
+    }
+
+    async function uploadImg() {
+        const file = document.getElementById('filePicker').files[0];
+        if(!file) return alert("Select photo!");
+        document.getElementById('status').innerText = "Uploading... ⏳";
+        
         const fd = new FormData(); fd.append("image", file);
         try {
             const res = await fetch("https://api.imgbb.com/1/upload?key="+IMGBB_KEY, {method:"POST", body:fd});
             const data = await res.json();
             db.ref('pics/'+user).push(data.data.url);
             document.getElementById('status').innerText = "Saved Successfully! ✅";
-        } catch(e) { alert("Upload fail ho gaya!"); }
+            setTimeout(() => { document.getElementById('status').innerText = ""; }, 3000);
+        } catch(e) { alert("Fail!"); }
     }
 
     function loadPhotos() {
+        const gal = document.getElementById('gallery');
         db.ref('pics/'+user).on('child_added', s => {
-            const img = document.createElement('img'); img.src = s.val();
-            document.getElementById('gallery').prepend(img);
+            const img = document.createElement('img');
+            img.src = s.val(); img.className = 'gal-img';
+            gal.prepend(img);
         });
     }
 </script>
