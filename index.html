@@ -3,174 +3,166 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Magic Interactive Vault ✨</title>
-    
+    <title>Ultimate Memories v3 💖</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-
     <style>
-        :root {
-            --main-pink: #d63384;
-            --main-blue: #1E3A8A; /* Sahi wala Blue background */
-            --gradient-start: #3B82F6; /* Blue trail end */
-            --gradient-end: #F472B6; /* Pink trail start */
+        body { 
+            margin: 0; padding: 0; overflow-x: hidden;
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #fff5f8 0%, #ffe4ef 100%); /* Soft Aesthetic Pink */
+            height: 100vh; display: flex; align-items: center; justify-content: center;
         }
         
-        body { font-family: 'Segoe UI', sans-serif; background: var(--main-blue); margin: 0; padding: 0; overflow: hidden; height: 100vh; width: 100vw; }
-        
-        /* THE INTERACTIVE BACKGROUND CANVAS */
-        #interactive-background {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 0;
-            cursor: auto; /* Cursor waisa hi rahega */
+        /* Interactive Hearts Effect */
+        .heart-particle {
+            position: fixed; pointer-events: none;
+            color: #d63384; font-size: 20px;
+            animation: fly 1s linear forwards;
+            z-index: 9999;
+        }
+        @keyframes fly {
+            0% { transform: translateY(0) scale(1); opacity: 1; }
+            100% { transform: translateY(-100px) scale(0); opacity: 0; }
         }
 
-        /* The Custom Gradient Circle Trail (Like User's Image) */
-        .magic-trail-dot {
-            position: fixed;
-            pointer-events: none;
-            width: 35px; /* Circle trail size */
-            height: 35px;
-            border-radius: 50%;
-            /* Pink-Blue Gradient, starting pink to blue, just like the image */
-            background: linear-gradient(135deg, var(--gradient-end) 0%, var(--gradient-start) 100%);
-            box-shadow: 0 0 12px rgba(244, 114, 182, 0.4);
-            opacity: 0;
-            transition: opacity 0.3s ease, transform 0.1s ease;
-            transform: translate(-50%, -50%);
-            z-index: 1;
-        }
-
-        /* The Box Content */
-        .box {
-            position: relative;
-            max-width: 400px;
-            margin: 40px auto;
-            background: white;
-            padding: 30px;
-            border-radius: 25px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
-            border: 1.5px solid #ffdae9;
+        .box { 
+            width: 90%; max-width: 380px; background: white; 
+            padding: 30px; border-radius: 25px; 
+            box-shadow: 0 15px 35px rgba(214, 51, 132, 0.1); 
+            border: 1px solid #ffdae9; text-align: center;
             z-index: 10;
         }
-        h1 { color: var(--main-pink); font-size: 26px; }
-        .input-group { position: relative; width: 100%; margin: 10px 0; }
-        input { width: 85%; padding: 14px; border: 1px solid #fbcfe8; border-radius: 12px; outline: none; background: #fff9fb; font-size: 16px; }
-        button { background: var(--main-pink); color: white; border: none; padding: 14px; border-radius: 12px; cursor: pointer; width: 95%; font-weight: bold; margin-top: 15px; }
-        #gallery { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 20px; }
-        img { width: 100%; height: 160px; object-fit: cover; border-radius: 18px; border: 3px solid white; box-shadow: 0 5px 15px rgba(0,0,0,0.08); }
+        h1 { color: #d63384; margin-bottom: 25px; font-size: 24px; }
+        input { 
+            width: 100%; padding: 14px; margin: 10px 0; 
+            border: 1px solid #fbcfe8; border-radius: 12px; 
+            outline: none; box-sizing: border-box; background: #fff9fb;
+        }
+        .btn { 
+            background: #d63384; color: white; border: none; 
+            padding: 15px; border-radius: 15px; cursor: pointer; 
+            width: 100%; font-weight: bold; margin-top: 15px; font-size: 16px;
+        }
+        .btn-outline { background: none; color: #d63384; border: 2px solid #d63384; margin-top: 15px; }
+        #gallery { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
+        .thumb { width: 100%; height: 140px; object-fit: cover; border-radius: 15px; border: 2px solid #fff; }
         .hidden { display: none; }
+        #status { color: #d63384; margin-top: 10px; font-weight: bold; }
     </style>
 </head>
 <body>
 
-    <div id="interactive-background">
-        <div class="magic-trail-dot" id="cursor-trail-dot"></div>
-    </div>
+<div id="auth-page" class="box">
+    <h1>🔒 Private Vault</h1>
+    <input type="text" id="phone" placeholder="Mobile Number">
+    <input type="password" id="pass" placeholder="Secret Password">
+    <button class="btn" onclick="handleAuth()">Enter Vault</button>
+    <p id="toggle-text" onclick="toggleAuth()" style="cursor:pointer; color:#d63384; margin-top:15px; font-size:14px;">New User? Create Account</p>
+</div>
 
-    <div id="auth-box" class="box">
-        <h1>🔒 Private Vault</h1>
-        <div class="input-group"><input type="text" id="phone" placeholder="Mobile Number"></div>
-        <div class="input-group"><input type="password" id="pass" placeholder="Secret Password"></div>
-        <button id="main-btn" onclick="handleAuth()">Enter Vault</button>
-        <div class="switch-link" id="toggle-link" onclick="toggleView()" style="color:#d63384; cursor:pointer; text-decoration:underline; font-size:14px; margin-top:15px; display:inline-block;">Switch Login/Register</div>
-    </div>
+<div id="dashboard" class="box hidden">
+    <h1>Welcome Sofia 💖</h1>
+    <button class="btn" onclick="showScreen('upload-page')">📤 Upload New Photo</button>
+    <button class="btn btn-outline" onclick="showScreen('gallery-page')">🖼️ See Memories</button>
+    <button onclick="location.reload()" style="background:none; border:none; color:#aaa; margin-top:20px; cursor:pointer;">Logout</button>
+</div>
 
-    <div id="app-box" class="box hidden">
-        <h1>📸 My Memories</h1>
-        <input type="file" id="filePicker" accept="image/*">
-        <button onclick="uploadToImgBB()">Upload to Cloud ✨</button>
-        <div id="status"></div>
-        <div id="gallery"></div>
-    </div>
+<div id="upload-page" class="box hidden">
+    <h1>Upload Photo</h1>
+    <input type="file" id="filePicker" accept="image/*">
+    <button class="btn" onclick="uploadImg()">Save to Cloud ✨</button>
+    <div id="status"></div>
+    <button class="btn btn-outline" onclick="showScreen('dashboard')">Back</button>
+</div>
+
+<div id="gallery-page" class="box hidden">
+    <h1>Memories</h1>
+    <div id="gallery"></div>
+    <button class="btn btn-outline" onclick="showScreen('dashboard')">Back</button>
+</div>
 
 <script>
-    // --- FIREBASE AND IMGBB SETUP (Old configs kept, but key is required) ---
-    // Make sure your IMGBB_API_KEY is defined somewhere.
     const firebaseConfig = {
         apiKey: "AIzaSyA7fMm1LjMOz4BefGk60cmMuSoFzBvJapg",
-        authDomain: "ultimatememories-64a97.firebaseapp.com",
-        projectId: "ultimatememories-64a97",
         databaseURL: "https://ultimatememories-64a97-default-rtdb.firebaseio.com",
+        projectId: "ultimatememories-64a97",
         appId: "1:513888704426:web:b1476d30698d45dd117dd3"
     };
-    const IMGBB_API_KEY = "cb53c38c41a5ce7d642d1152d306da9a"; // This must exist.
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
+    const IMGBB_KEY = "cb53c38c41a5ce7d642d1152d306da9a";
 
-    // -- App Logic (Unchanged) --
-    let isLoginMode = false; let currentUser = null;
-    function toggleView() {
-        isLoginMode = !isLoginMode;
-        document.getElementById('main-btn').innerText = isLoginMode ? "Login Now" : "Create Account";
+    let isLogin = true; let user = null;
+
+    function toggleAuth() {
+        isLogin = !isLogin;
+        document.querySelector('h1').innerText = isLogin ? "🔒 Private Vault" : "📝 Register";
+        document.getElementById('toggle-text').innerText = isLogin ? "New User? Create Account" : "Already have an account? Login";
     }
+
     function handleAuth() {
-        // ... previous login logic
+        const ph = document.getElementById('phone').value.trim();
+        const ps = document.getElementById('pass').value.trim();
+        if(!ph || !ps) return alert("Fill details!");
+
+        if(isLogin) {
+            db.ref('users/'+ph).once('value', s => {
+                if(s.exists() && s.val().password === ps) { user=ph; showScreen('dashboard'); loadPhotos(); }
+                else alert("Wrong Login!");
+            });
+        } else {
+            db.ref('users/'+ph).set({password: ps}).then(() => { alert("Account Created! Now Login."); location.reload(); });
+        }
     }
-    function showApp() {
-        // ... previous showApp logic
+
+    function showScreen(id) {
+        document.querySelectorAll('.box').forEach(b => b.classList.add('hidden'));
+        document.getElementById(id).classList.remove('hidden');
     }
-    async function uploadToImgBB() {
-        // ... previous upload function
+
+    async function uploadImg() {
+        const file = document.getElementById('filePicker').files[0];
+        if(!file) return alert("Select photo!");
+        document.getElementById('status').innerText = "Uploading... ⏳";
+        const fd = new FormData(); fd.append("image", file);
+        try {
+            const res = await fetch("https://api.imgbb.com/1/upload?key="+IMGBB_KEY, {method:"POST", body:fd});
+            const data = await res.json();
+            db.ref('pics/'+user).push(data.data.url);
+            document.getElementById('status').innerText = "Saved! ✅";
+            setTimeout(() => showScreen('dashboard'), 1000);
+        } catch(e) { alert("Fail!"); }
     }
 
-    // --- INTERACTIVE BACKGROUND TRAIL JAVASCRIPT ---
-    const bgContainer = document.getElementById('interactive-background');
-    const trailDot = document.getElementById('cursor-trail-dot');
-
-    // 1. Follow Cursor Move
-    bgContainer.addEventListener('mousemove', (e) => {
-        trailDot.style.opacity = '1';
-        // Follow cursor but slightly larger, showing the pink-blue gradient circle
-        trailDot.style.transform = `translate(${e.clientX}px, ${e.clientY}px) scale(1.3)`;
-    });
-
-    // Hide when cursor leaves screen
-    bgContainer.addEventListener('mouseleave', () => {
-        trailDot.style.opacity = '0';
-    });
-
-    // 2. Click/Tap Ripple Effect (Optional, keep it?)
-    // This adds a temporary larger ripple, which works great with the trail.
-    bgContainer.addEventListener('mousedown', (e) => {
-        createTemporaryTrailElement(e.clientX, e.clientY);
-    });
-
-    // Mobile tap handling
-    bgContainer.addEventListener('touchstart', (e) => {
-        createTemporaryTrailElement(e.touches[0].clientX, e.touches[0].clientY);
-    });
-
-    function createTemporaryTrailElement(x, y) {
-        // Create a temporary trail element (dot) that quickly fades out
-        const tempDot = document.createElement('div');
-        tempDot.className = 'magic-trail-dot'; // Reuse style
-        tempDot.style.left = `${x}px`;
-        tempDot.style.top = `${y}px`;
-        tempDot.style.opacity = '1'; // Show immediately
-        tempDot.style.width = '30px'; // Slightly smaller for tap dot
-        tempDot.style.height = '30px';
-        
-        // Size it like the trail element in your image
-        bgContainer.appendChild(tempDot);
-
-        // Animate a fade-out + slight scale
-        tempDot.animate([
-            { transform: 'translate(-50%, -50%) scale(1.3)', opacity: 1 },
-            { transform: 'translate(-50%, -50%) scale(2)', opacity: 0 }
-        ], {
-            duration: 600, // 0.6 seconds
-            easing: 'ease-out'
+    function loadPhotos() {
+        const gal = document.getElementById('gallery');
+        db.ref('pics/'+user).on('value', snap => {
+            gal.innerHTML = "";
+            snap.forEach(child => {
+                const img = document.createElement('img');
+                img.src = child.val(); img.className = 'thumb';
+                gal.prepend(img);
+            });
         });
+    }
 
-        // Remove element after animation finishes
-        setTimeout(() => {
-            tempDot.remove();
-        }, 600);
+    // HEART ANIMATION LOGIC
+    document.addEventListener('mousemove', (e) => {
+        if(Math.random() > 0.9) createHeart(e.clientX, e.clientY);
+    });
+    document.addEventListener('touchstart', (e) => {
+        createHeart(e.touches[0].clientX, e.touches[0].clientY);
+    });
+
+    function createHeart(x, y) {
+        const heart = document.createElement('div');
+        heart.innerHTML = "❤️";
+        heart.className = 'heart-particle';
+        heart.style.left = x + 'px';
+        heart.style.top = y + 'px';
+        document.body.appendChild(heart);
+        setTimeout(() => heart.remove(), 1000);
     }
 </script>
 </body>
