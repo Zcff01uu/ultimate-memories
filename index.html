@@ -3,127 +3,106 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Couple Vault 💖 v4</title>
+    <title>Ultimate Memories 💖</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <style>
         :root { --main-color: #d63384; --bg-color: #fff5f8; }
         body { 
             font-family: 'Segoe UI', sans-serif; background: var(--bg-color); 
-            text-align: center; margin: 0; padding: 20px; 
-            overflow-x: hidden; height: 100vh; display: flex; align-items: center; justify-content: center;
+            margin: 0; padding: 20px; height: 100vh; display: flex; align-items: center; justify-content: center;
         }
         
-        /* Floating Hearts (Aesthetic) */
-        .heart-particle {
-            position: fixed; pointer-events: none;
-            color: var(--main-color); font-size: 20px;
-            animation: fly 1s linear forwards;
-            z-index: 9999;
-        }
-        @keyframes fly {
-            0% { transform: translateY(0) scale(1); opacity: 1; }
-            100% { transform: translateY(-100px) scale(0); opacity: 0; }
-        }
+        /* Heart Animation */
+        .heart-particle { position: fixed; pointer-events: none; color: var(--main-color); font-size: 20px; animation: fly 1s linear forwards; z-index: 9999; }
+        @keyframes fly { 0% { transform: translateY(0) scale(1); opacity: 1; } 100% { transform: translateY(-100px) scale(0); opacity: 0; } }
 
         .box { 
-            width: 90%; max-width: 380px; background: white; 
-            padding: 30px; border-radius: 25px; 
-            box-shadow: 0 10px 40px rgba(214, 51, 132, 0.05); 
-            border: 1px solid #ffdae9; text-align: center;
-            z-index: 10;
+            width: 90%; max-width: 380px; background: white; padding: 30px; border-radius: 25px; 
+            box-shadow: 0 10px 40px rgba(214, 51, 132, 0.05); border: 1px solid #ffdae9; text-align: center; position: relative;
         }
+        
         h1 { color: var(--main-color); margin-bottom: 25px; font-size: 24px; }
-        input[type="text"], input[type="password"] { 
-            width: 100%; padding: 14px; margin: 10px 0; 
-            border: 1px solid #fbcfe8; border-radius: 12px; 
-            outline: none; box-sizing: border-box; background: #fff9fb;
+        
+        /* Input Styling */
+        .input-container { position: relative; width: 100%; margin: 10px 0; }
+        input { 
+            width: 100%; padding: 14px; border: 1px solid #fbcfe8; border-radius: 12px; 
+            outline: none; box-sizing: border-box; background: #fff9fb; font-size: 16px;
         }
+        
+        /* Password Toggle Icon */
+        .toggle-pass {
+            position: absolute; right: 15px; top: 50%; transform: translateY(-50%);
+            cursor: pointer; color: #aaa; font-size: 18px; user-select: none;
+        }
+
         .btn { 
-            background: var(--main-color); color: white; border: none; 
-            padding: 15px; border-radius: 15px; cursor: pointer; 
-            width: 100%; font-weight: bold; margin-top: 15px; font-size: 16px; transition: 0.3s;
+            background: var(--main-color); color: white; border: none; padding: 15px; 
+            border-radius: 15px; cursor: pointer; width: 100%; font-weight: bold; margin-top: 15px;
         }
         .btn-outline { background: none; color: var(--main-color); border: 2px solid var(--main-color); margin-top: 15px; }
-        .btn:hover { opacity: 0.9; transform: translateY(-2px); }
-
-        /* Gallery and Image Thumbs */
+        
+        /* Gallery Styles */
         #gallery { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 20px; }
-        .img-wrap { position: relative; width: 100%; height: 150px; border-radius: 15px; overflow: hidden; border: 2px solid white; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+        .img-wrap { position: relative; width: 100%; height: 120px; border-radius: 15px; overflow: hidden; }
         .thumb { width: 100%; height: 100%; object-fit: cover; cursor: pointer; }
-        .del-icon { 
-            position: absolute; top: 5px; right: 5px; 
-            background: rgba(214, 51, 132, 0.7); color: white; 
-            border: none; border-radius: 50%; padding: 6px; 
-            cursor: pointer; font-size: 10px; font-weight: bold; z-index: 5;
-        }
+        .del-icon { position: absolute; top: 5px; right: 5px; background: red; color: white; border: none; border-radius: 50%; width: 20px; height: 20px; cursor: pointer; font-size: 10px; }
 
-        /* FULL SCREEN MODAL / LIGHTBOX */
-        #zoom-modal { 
-            display: none; position: fixed; top: 0; left: 0; 
-            width: 100%; height: 100%; background: rgba(0,0,0,0.9); 
-            z-index: 10000; flex-direction: column; align-items: center; justify-content: center;
-        }
-        #full-res-img { 
-            max-width: 90%; max-height: 80%; border-radius: 10px; 
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 4px solid white;
-        }
-        .close-zoom { 
-            position: absolute; top: 20px; right: 25px; 
-            color: white; font-size: 40px; cursor: pointer; font-weight: bold; 
-        }
-
-        /* MOBILE ADJUSTMENTS */
-        @media only screen and (max-width: 480px) {
-            #gallery { grid-template-columns: 1fr; gap: 15px; } /* Single column on phone */
-            .img-wrap { height: 250px; } /* Taller thumbnails on phone */
-            #full-res-img { max-width: 95%; max-height: 90%; } /* Pura portrait cover karna mobile par */
-        }
+        /* Full Screen Zoom */
+        #zoom-modal { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:10000; align-items:center; justify-content:center; }
+        #full-res-img { max-width: 90%; max-height: 80%; border: 3px solid white; border-radius: 10px; }
 
         .hidden { display: none; }
-        #status { color: var(--main-color); margin-top: 10px; font-weight: bold; font-size: 14px; }
     </style>
 </head>
 <body>
 
-    <div id="zoom-modal">
-        <span class="close-zoom" onclick="closeZoom()">&times;</span>
+    <div id="zoom-modal" onclick="closeZoom()">
         <img id="full-res-img" src="">
     </div>
 
     <div id="auth-page" class="box">
         <h1 id="header-text">🔑 Login</h1>
-        <input type="text" id="phone" placeholder="Mobile Number">
-        <input type="password" id="pass" placeholder="Secret Password">
+        
+        <div class="input-container">
+            <input type="text" id="phone" placeholder="Mobile Number">
+        </div>
+
+        <div class="input-container">
+            <input type="password" id="pass" placeholder="Secret Password">
+            <span class="toggle-pass" onclick="togglePass()">👁️</span>
+        </div>
+
         <button class="btn" id="action-btn" onclick="handleAuth()">Enter Vault</button>
-        <div id="status"></div>
+        <p id="status" style="color:red; font-size:12px; margin-top:10px;"></p>
+        
         <p id="to-signup" onclick="toggleAuth(false)" style="cursor:pointer; color:#d63384; margin-top:15px; font-size:14px; text-decoration:underline;">New User? Create Account</p>
         <p id="to-login" class="hidden" onclick="toggleAuth(true)" style="cursor:pointer; color:#d63384; margin-top:15px; font-size:14px; text-decoration:underline;">Already have account? Login</p>
     </div>
 
     <div id="dashboard" class="box hidden">
         <h1>Welcome 💖</h1>
-        <button class="btn" onclick="showScreen('upload-page')">📤 Upload New Photo</button>
+        <button class="btn" onclick="showScreen('upload-page')">📤 Upload Photo</button>
         <button class="btn btn-outline" onclick="showScreen('gallery-page')">🖼️ See Memories</button>
         <button onclick="location.reload()" style="background:none; border:none; color:#aaa; margin-top:25px; cursor:pointer;">Logout</button>
     </div>
 
     <div id="upload-page" class="box hidden">
         <h1>Add Memory</h1>
-        <input type="file" id="filePicker" accept="image/*">
-        <button class="btn" onclick="uploadImg()">Save to Cloud ✨</button>
-        <div id="upload-status"></div>
+        <input type="file" id="filePicker">
+        <button class="btn" onclick="uploadImg()">Save ✨</button>
         <button class="btn btn-outline" onclick="showScreen('dashboard')">Back</button>
     </div>
 
     <div id="gallery-page" class="box hidden">
         <h1>Memories</h1>
-        <p style="font-size:12px; color:#aaa; margin-top:-15px;">(Click photo to zoom)</p>
         <div id="gallery"></div>
-        <button class="btn btn-outline" onclick="showScreen('dashboard')" style="margin-top:20px;">Back</button>
+        <button class="btn btn-outline" onclick="showScreen('dashboard')">Back</button>
     </div>
 
 <script>
+    // Firebase Config (Aapka purana wala hi hai)
     const firebaseConfig = {
         apiKey: "AIzaSyA7fMm1LjMOz4BefGk60cmMuSoFzBvJapg",
         databaseURL: "https://ultimatememories-64a97-default-rtdb.firebaseio.com",
@@ -134,8 +113,20 @@
     const db = firebase.database();
     const IMGBB_KEY = "cb53c38c41a5ce7d642d1152d306da9a";
 
-    let isLoginMode = true; 
-    let userPh = null;
+    let isLoginMode = true; let userPh = null;
+
+    // PASSWORD TOGGLE FUNCTION
+    function togglePass() {
+        const passInput = document.getElementById('pass');
+        const toggleIcon = document.querySelector('.toggle-pass');
+        if (passInput.type === "password") {
+            passInput.type = "text";
+            toggleIcon.innerText = "🔒"; // Icon change ho jayega
+        } else {
+            passInput.type = "password";
+            toggleIcon.innerText = "👁️";
+        }
+    }
 
     function toggleAuth(showLogin) {
         isLoginMode = showLogin;
@@ -148,15 +139,18 @@
     function handleAuth() {
         const ph = document.getElementById('phone').value.trim();
         const ps = document.getElementById('pass').value.trim();
-        const status = document.getElementById('status');
-        if(!ph || !ps) { status.innerText = "❌ Details bharo!"; return; }
+        if(!ph || !ps) return alert("Fill details!");
+        
         if(isLoginMode) {
             db.ref('users/'+ph).once('value', s => {
                 if(s.exists() && s.val().password === ps) { userPh=ph; showScreen('dashboard'); loadPhotos(); }
-                else status.innerText = "❌ Wrong Login!";
+                else document.getElementById('status').innerText = "❌ Wrong Number or Password!";
             });
         } else {
-            db.ref('users/'+ph).set({password: ps}).then(() => { alert("Created! Now Login."); location.reload(); });
+            db.ref('users/'+ph).once('value', s => {
+                if(s.exists()) alert("Already exists!");
+                else db.ref('users/'+ph).set({password: ps}).then(() => location.reload());
+            });
         }
     }
 
@@ -167,17 +161,12 @@
 
     async function uploadImg() {
         const file = document.getElementById('filePicker').files[0];
-        const uStatus = document.getElementById('upload-status');
         if(!file) return alert("Select photo!");
-        uStatus.innerText = "Uploading... ⏳";
         const fd = new FormData(); fd.append("image", file);
-        try {
-            const res = await fetch("https://api.imgbb.com/1/upload?key="+IMGBB_KEY, {method:"POST", body:fd});
-            const data = await res.json();
-            db.ref('pics/'+userPh).push(data.data.url);
-            uStatus.innerText = "Saved! ✅";
-            setTimeout(() => showScreen('dashboard'), 1000);
-        } catch(e) { uStatus.innerText = "Fail! ❌"; }
+        const res = await fetch("https://api.imgbb.com/1/upload?key="+IMGBB_KEY, {method:"POST", body:fd});
+        const data = await res.json();
+        db.ref('pics/'+userPh).push(data.data.url);
+        alert("Saved! ✅"); showScreen('dashboard');
     }
 
     function loadPhotos() {
@@ -186,40 +175,23 @@
             gal.innerHTML = "";
             snap.forEach(child => {
                 const wrap = document.createElement('div'); wrap.className = 'img-wrap';
-                wrap.innerHTML = `
-                    <button class="del-icon" onclick="deletePic('${child.key}')">X</button>
-                    <img src="${child.val()}" class="thumb" onclick="openZoom('${child.val()}')">
-                `;
+                wrap.innerHTML = `<button class="del-icon" onclick="deletePic('${child.key}')">X</button>
+                                  <img src="${child.val()}" class="thumb" onclick="openZoom('${child.val()}')">`;
                 gal.prepend(wrap);
             });
         });
     }
 
-    function deletePic(key) {
-        if(confirm("Delete karni hai ye memory?")) {
-            db.ref('pics/'+userPh+'/'+key).remove();
-        }
-    }
+    function deletePic(key) { if(confirm("Delete?")) db.ref('pics/'+userPh+'/'+key).remove(); }
+    function openZoom(url) { document.getElementById('full-res-img').src = url; document.getElementById('zoom-modal').style.display = "flex"; }
+    function closeZoom() { document.getElementById('zoom-modal').style.display = "none"; }
 
-    // ZOOM MODAL LOGIC
-    function openZoom(url) {
-        const modal = document.getElementById('zoom-modal');
-        const img = document.getElementById('full-res-img');
-        img.src = url;
-        modal.style.display = "flex";
-    }
-
-    function closeZoom() {
-        document.getElementById('zoom-modal').style.display = "none";
-    }
-
-    // Interactive Hearts
+    // Hearts effect
     document.addEventListener('mousemove', (e) => { if(Math.random() > 0.9) createHeart(e.clientX, e.clientY); });
-    document.addEventListener('touchstart', (e) => { createHeart(e.touches[0].clientX, e.touches[0].clientY); });
     function createHeart(x, y) {
-        const heart = document.createElement('div'); heart.innerHTML = "❤️";
-        heart.className = 'heart-particle'; heart.style.left = x + 'px'; heart.style.top = y + 'px';
-        document.body.appendChild(heart); setTimeout(() => heart.remove(), 1000);
+        const h = document.createElement('div'); h.innerHTML = "❤️"; h.className = 'heart-particle';
+        h.style.left = x + 'px'; h.style.top = y + 'px'; document.body.appendChild(h);
+        setTimeout(() => h.remove(), 1000);
     }
 </script>
 </body>
