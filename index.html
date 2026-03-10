@@ -11,59 +11,60 @@
     
     <style>
         :root { --main-color: #d63384; --bg-color: #fff5f8; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg-color); margin: 0; padding: 20px; display: flex; align-items: center; justify-content: center; min-height: 100vh; overflow-x: hidden; cursor: crosshair; }
-        .box { width: 90%; max-width: 380px; background: white; padding: 30px; border-radius: 25px; box-shadow: 0 10px 40px rgba(214, 51, 132, 0.15); border: 1px solid #ffdae9; text-align: center; position: relative; z-index: 10; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg-color); margin: 0; padding: 20px; display: flex; align-items: center; justify-content: center; min-height: 100vh; cursor: crosshair; }
+        .box { width: 95%; max-width: 400px; background: white; padding: 30px; border-radius: 25px; box-shadow: 0 10px 40px rgba(214,51,132,0.15); border: 1px solid #ffdae9; text-align: center; z-index: 10; }
         h1 { color: var(--main-color); margin-bottom: 20px; font-size: 24px; }
         .input-group { position: relative; width: 100%; margin: 12px 0; }
-        input { width: 100%; padding: 15px; border: 1.5px solid #fbcfe8; border-radius: 12px; outline: none; box-sizing: border-box; background: #fff9fb; font-size: 16px; transition: 0.3s; }
-        input:focus { border-color: var(--main-color); }
-        .toggle-pass { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); cursor: pointer; font-size: 20px; z-index: 15; }
-        .btn { background: var(--main-color); color: white; border: none; padding: 16px; border-radius: 15px; width: 100%; font-weight: bold; cursor: pointer; margin-top: 15px; font-size: 17px; box-shadow: 0 5px 15px rgba(214, 51, 132, 0.3); }
-        .btn-secondary { background: #6c757d; margin-top: 10px; font-size: 14px; padding: 12px; }
+        input { width: 100%; padding: 15px; border: 1.5px solid #fbcfe8; border-radius: 12px; outline: none; box-sizing: border-box; background: #fff9fb; font-size: 16px; }
+        .btn { background: var(--main-color); color: white; border: none; padding: 16px; border-radius: 15px; width: 100%; font-weight: bold; cursor: pointer; margin-top: 10px; font-size: 16px; transition: 0.3s; }
+        .btn:hover { opacity: 0.9; }
         .hidden { display: none !important; }
-        
-        /* Dashboard Layout */
-        .upload-section { background: #fff0f5; padding: 15px; border-radius: 20px; border: 1px dashed var(--main-color); margin-bottom: 15px; }
-        .gallery-container { margin-top: 20px; border-top: 1px solid #ffdae9; padding-top: 15px; }
-        .gallery-title { font-size: 18px; color: var(--main-color); margin-bottom: 10px; font-weight: bold; }
-        #gallery { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; max-height: 300px; overflow-y: auto; padding: 5px; }
-        .img-card { width: 100%; height: 120px; object-fit: cover; border-radius: 12px; border: 2px solid white; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        
+
+        /* Gallery Styles */
+        #gallery { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; max-height: 350px; overflow-y: auto; padding: 10px; }
+        .img-container { position: relative; overflow: hidden; border-radius: 12px; height: 120px; border: 2px solid white; box-shadow: 0 4px 10px rgba(0,0,0,0.1); cursor: zoom-in; }
+        .img-card { width: 100%; height: 100%; object-fit: cover; transition: 0.3s; }
+        .img-card:hover { transform: scale(1.1); }
+        .del-btn { position: absolute; top: 5px; right: 5px; background: rgba(255,255,255,0.8); color: red; border: none; border-radius: 50%; width: 25px; height: 25px; cursor: pointer; font-size: 14px; font-weight: bold; z-index: 5; }
+
+        /* Full Screen Modal */
+        #modal { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index: 9999; display:none; align-items:center; justify-content:center; }
+        #modal img { max-width: 90%; max-height: 80%; border-radius: 10px; transition: transform 0.3s ease; cursor: zoom-out; }
+        #modal img:hover { transform: scale(1.5); }
+        .close-modal { position: absolute; top: 20px; right: 20px; color: white; font-size: 30px; cursor: pointer; }
+
         .heart { position: fixed; color: var(--main-color); font-size: 18px; pointer-events: none; animation: fly 1s linear forwards; z-index: 9999; }
-        @keyframes fly { 0% { transform: translate(0, 0) scale(1); opacity: 1; } 100% { transform: translate(var(--x), var(--y)) scale(1.5); opacity: 0; } }
+        @keyframes fly { 0% { transform: translate(0, 0); opacity: 1; } 100% { transform: translate(var(--x), var(--y)); opacity: 0; } }
     </style>
 </head>
 <body>
 
-    <div id="screen-auth" class="box animate__animated animate__zoomIn">
-        <h1 id="auth-title">🔑 Login</h1>
-        <div class="input-group">
-            <input type="email" id="email" placeholder="Email Address">
-        </div>
-        <div class="input-group">
-            <input type="password" id="pass" placeholder="Secret Password">
-            <span class="toggle-pass" onclick="togglePass()">👁️</span>
-        </div>
-        <button class="btn" id="main-btn" onclick="handleAuth()">Enter Vault</button>
-        <p id="toggle-text" onclick="toggleMode()" style="cursor:pointer; color:var(--main-color); margin-top:18px; font-size:14px; font-weight: 500;">New User? Create Account</p>
+    <div id="modal" onclick="closeZoom()">
+        <span class="close-modal">&times;</span>
+        <img id="zoomImg" src="">
     </div>
 
-    <div id="screen-menu" class="box hidden animate__animated animate__fadeInUp" style="max-width: 500px;">
+    <div id="screen-auth" class="box animate__animated animate__zoomIn">
+        <h1 id="auth-title">🔑 Login</h1>
+        <input type="email" id="email" placeholder="Email">
+        <div class="input-group">
+            <input type="password" id="pass" placeholder="Password">
+        </div>
+        <button class="btn" onclick="handleAuth()">Enter Vault</button>
+        <p onclick="toggleMode()" id="toggle-text" style="cursor:pointer; color:var(--main-color); margin-top:15px; font-size:14px;">New User? Create Account</p>
+    </div>
+
+    <div id="screen-menu" class="box hidden animate__animated animate__fadeIn">
         <h1>Our Memories 💖</h1>
-        
-        <div class="upload-section">
-            <input type="file" id="filePicker" style="font-size: 12px; margin-bottom: 10px; width: 100%;">
+        <div style="background:#fff0f5; padding:15px; border-radius:20px; border:1px dashed var(--main-color);">
+            <input type="file" id="filePicker" style="font-size:12px; margin-bottom:10px; width:100%;">
             <button class="btn" onclick="uploadImg()" id="up-btn">Upload Photo ✨</button>
         </div>
-
-        <button class="btn btn-secondary" onclick="toggleGallery()" id="view-btn">See Photo 📸</button>
-
-        <div id="gallery-wrapper" class="gallery-container hidden">
-            <div class="gallery-title">📜 Memories Gallery</div>
+        <button class="btn" style="background:#6c757d" onclick="toggleGallery()" id="view-btn">See Photo 📸</button>
+        <div id="gallery-wrapper" class="hidden">
             <div id="gallery"></div>
         </div>
-        
-        <button onclick="location.reload()" style="background:none; border:none; color:#aaa; margin-top:25px; cursor:pointer; font-size: 12px; text-decoration: underline;">Logout</button>
+        <button onclick="location.reload()" style="background:none; border:none; color:#aaa; margin-top:20px; cursor:pointer;">Logout</button>
     </div>
 
 <script>
@@ -80,48 +81,16 @@
     let isLogin = true;
 
     function toggleMode() {
-        const authBox = document.getElementById('screen-auth');
-        authBox.classList.remove('animate__zoomIn'); 
-        void authBox.offsetWidth;
-        authBox.classList.add('animate__zoomIn');
         isLogin = !isLogin;
         document.getElementById('auth-title').innerText = isLogin ? "🔑 Login" : "📝 Register";
-        document.getElementById('main-btn').innerText = isLogin ? "Enter Vault" : "Create Account";
         document.getElementById('toggle-text').innerText = isLogin ? "New User? Create Account" : "Back to Login";
     }
 
-    function togglePass() {
-        const p = document.getElementById('pass');
-        p.type = p.type === "password" ? "text" : "password";
-    }
-
-    // NEW: Function to show/hide gallery
-    function toggleGallery() {
-        const wrapper = document.getElementById('gallery-wrapper');
-        const btn = document.getElementById('view-btn');
-        if(wrapper.classList.contains('hidden')) {
-            wrapper.classList.remove('hidden');
-            btn.innerText = "Hide Photo 🙈";
-            loadPhotos(window.currentUid);
-        } else {
-            wrapper.classList.add('hidden');
-            btn.innerText = "See Photo 📸";
-        }
-    }
-
     function handleAuth() {
-        const email = document.getElementById('email').value;
-        const pass = document.getElementById('pass').value;
-        if(!email || !pass) return alert("Please fill both!");
-        if(isLogin) {
-            auth.signInWithEmailAndPassword(email, pass)
-                .then(user => showDashboard(user.user.uid))
-                .catch(err => alert("❌ Login Failed: " + err.message));
-        } else {
-            auth.createUserWithEmailAndPassword(email, pass)
-                .then(user => showDashboard(user.user.uid))
-                .catch(err => alert("❌ Registration Failed: " + err.message));
-        }
+        const e = document.getElementById('email').value;
+        const p = document.getElementById('pass').value;
+        if(isLogin) auth.signInWithEmailAndPassword(e, p).then(u => showDashboard(u.user.uid)).catch(e => alert(e.message));
+        else auth.createUserWithEmailAndPassword(e, p).then(u => showDashboard(u.user.uid)).catch(e => alert(e.message));
     }
 
     function showDashboard(uid) {
@@ -132,40 +101,65 @@
 
     async function uploadImg() {
         const file = document.getElementById('filePicker').files[0];
-        if(!file) return alert("Pick a photo first!");
-        const btn = document.getElementById('up-btn');
-        btn.innerText = "Saving... ⏳";
+        if(!file) return alert("Select photo!");
+        document.getElementById('up-btn').innerText = "Uploading... ⏳";
         const fd = new FormData(); fd.append("image", file);
-        try {
-            const res = await fetch("https://api.imgbb.com/1/upload?key=cb53c38c41a5ce7d642d1152d306da9a", {method:"POST", body:fd});
-            const data = await res.json();
-            db.ref('pics/' + window.currentUid).push(data.data.url);
-            alert("Memory Saved! ❤️");
-        } catch(e) { alert("Upload error!"); }
-        btn.innerText = "Upload Photo ✨";
+        const res = await fetch("https://api.imgbb.com/1/upload?key=cb53c38c41a5ce7d642d1152d306da9a", {method:"POST", body:fd});
+        const data = await res.json();
+        db.ref('pics/' + window.currentUid).push(data.data.url);
+        document.getElementById('up-btn').innerText = "Upload Photo ✨";
+        alert("Done! ❤️");
     }
 
-    function loadPhotos(uid) {
+    function toggleGallery() {
+        const wrap = document.getElementById('gallery-wrapper');
+        const btn = document.getElementById('view-btn');
+        if(wrap.classList.contains('hidden')) {
+            wrap.classList.remove('hidden');
+            btn.innerText = "Hide Photo 🙈";
+            loadPhotos();
+        } else {
+            wrap.classList.add('hidden');
+            btn.innerText = "See Photo 📸";
+        }
+    }
+
+    function loadPhotos() {
         const gal = document.getElementById('gallery');
-        db.ref('pics/' + uid).on('value', snap => {
+        db.ref('pics/' + window.currentUid).on('value', snap => {
             gal.innerHTML = "";
             snap.forEach(child => {
-                const img = document.createElement('img');
-                img.src = child.val(); img.className = "img-card animate__animated animate__fadeIn";
-                gal.prepend(img);
+                const div = document.createElement('div');
+                div.className = "img-container animate__animated animate__fadeIn";
+                div.innerHTML = `<button class="del-btn" onclick="deleteImg('${child.key}')">×</button>
+                                 <img src="${child.val()}" class="img-card" onclick="openZoom('${child.val()}')">`;
+                gal.prepend(div);
             });
         });
     }
 
+    function deleteImg(key) {
+        if(confirm("Delete this memory? 🥺")) {
+            db.ref('pics/' + window.currentUid + '/' + key).remove();
+        }
+    }
+
+    function openZoom(src) {
+        document.getElementById('zoomImg').src = src;
+        document.getElementById('modal').style.display = "flex";
+    }
+
+    function closeZoom() {
+        document.getElementById('modal').style.display = "none";
+    }
+
     document.addEventListener('mousemove', (e) => {
         if(Math.random() > 0.8) {
-            const h = document.createElement('div');
-            h.className = 'heart'; h.innerHTML = "❤️";
+            const h = document.createElement('div'); h.className = 'heart'; h.innerHTML = "❤️";
             h.style.left = e.clientX + 'px'; h.style.top = e.clientY + 'px';
             h.style.setProperty('--x', (Math.random() * 100 - 50) + 'px');
             h.style.setProperty('--y', (Math.random() * -100 - 50) + 'px');
-            document.body.appendChild(h);
-            setTimeout(() => h.remove(), 1000);
+            document.body.appendChild(h); setTimeout(() => h.remove(), 1000);
         }
     });
 </script>
