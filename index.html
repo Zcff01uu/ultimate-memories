@@ -4,16 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ultimate Memories 💖</title>
-    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
-    
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     
     <style>
         :root { --main-color: #d63384; --bg-color: #fff5f8; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg-color); margin: 0; padding: 20px; display: flex; align-items: center; justify-content: center; min-height: 100vh; overflow: hidden; cursor: crosshair; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg-color); margin: 0; padding: 20px; display: flex; align-items: center; justify-content: center; min-height: 100vh; overflow-x: hidden; cursor: crosshair; }
         .box { width: 90%; max-width: 380px; background: white; padding: 30px; border-radius: 25px; box-shadow: 0 10px 40px rgba(214, 51, 132, 0.15); border: 1px solid #ffdae9; text-align: center; position: relative; z-index: 10; }
         h1 { color: var(--main-color); margin-bottom: 20px; font-size: 24px; }
         .input-group { position: relative; width: 100%; margin: 12px 0; }
@@ -23,9 +21,13 @@
         .btn { background: var(--main-color); color: white; border: none; padding: 16px; border-radius: 15px; width: 100%; font-weight: bold; cursor: pointer; margin-top: 15px; font-size: 17px; box-shadow: 0 5px 15px rgba(214, 51, 132, 0.3); }
         .hidden { display: none !important; }
         
-        #gallery { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; max-height: 450px; overflow-y: auto; }
-        .img-card { width: 100%; height: 130px; object-fit: cover; border-radius: 12px; border: 2px solid white; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        /* Dashboard Layout */
+        .upload-section { background: #fff0f5; padding: 15px; border-radius: 20px; border: 1px dashed var(--main-color); margin-bottom: 25px; }
+        .gallery-title { font-size: 18px; color: var(--main-color); margin-top: 20px; margin-bottom: 10px; font-weight: bold; border-top: 1px solid #ffdae9; padding-top: 15px; }
+        #gallery { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; max-height: 350px; overflow-y: auto; padding: 5px; }
+        .img-card { width: 100%; height: 120px; object-fit: cover; border-radius: 12px; border: 2px solid white; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
         
+        /* Hearts Cursor */
         .heart { position: fixed; color: var(--main-color); font-size: 18px; pointer-events: none; animation: fly 1s linear forwards; z-index: 9999; }
         @keyframes fly { 0% { transform: translate(0, 0) scale(1); opacity: 1; } 100% { transform: translate(var(--x), var(--y)) scale(1.5); opacity: 0; } }
     </style>
@@ -47,12 +49,16 @@
 
     <div id="screen-menu" class="box hidden animate__animated animate__fadeInUp" style="max-width: 500px;">
         <h1>Our Memories 💖</h1>
-        <div style="background: #fff0f5; padding: 15px; border-radius: 15px; border: 1px dashed var(--main-color);">
-            <input type="file" id="filePicker" style="font-size: 12px; margin-bottom: 10px;">
-            <button class="btn" onclick="uploadImg()" id="up-btn">Upload to Cloud ✨</button>
+        
+        <div class="upload-section">
+            <input type="file" id="filePicker" style="font-size: 12px; margin-bottom: 10px; width: 100%;">
+            <button class="btn" onclick="uploadImg()" id="up-btn">Upload Photo ✨</button>
         </div>
+
+        <div class="gallery-title">📜 Memories Gallery</div>
         <div id="gallery"></div>
-        <button onclick="location.reload()" style="background:none; border:none; color:#aaa; margin-top:25px; cursor:pointer; font-size: 12px;">Logout</button>
+        
+        <button onclick="location.reload()" style="background:none; border:none; color:#aaa; margin-top:25px; cursor:pointer; font-size: 12px; text-decoration: underline;">Logout</button>
     </div>
 
 <script>
@@ -68,13 +74,11 @@
     const db = firebase.database();
     let isLogin = true;
 
-    // Animation Fix: Jab mode badle, animation reset ho jaye
     function toggleMode() {
         const authBox = document.getElementById('screen-auth');
         authBox.classList.remove('animate__zoomIn'); 
-        void authBox.offsetWidth; // Force reflow
+        void authBox.offsetWidth;
         authBox.classList.add('animate__zoomIn');
-
         isLogin = !isLogin;
         document.getElementById('auth-title').innerText = isLogin ? "🔑 Login" : "📝 Register";
         document.getElementById('main-btn').innerText = isLogin ? "Enter Vault" : "Create Account";
@@ -89,8 +93,7 @@
     function handleAuth() {
         const email = document.getElementById('email').value;
         const pass = document.getElementById('pass').value;
-        if(!email || !pass) return alert("Please enter both!");
-
+        if(!email || !pass) return alert("Please fill both!");
         if(isLogin) {
             auth.signInWithEmailAndPassword(email, pass)
                 .then(user => showDashboard(user.user.uid))
@@ -121,7 +124,7 @@
             db.ref('pics/' + window.currentUid).push(data.data.url);
             alert("Memory Saved! ❤️");
         } catch(e) { alert("Upload error!"); }
-        btn.innerText = "Upload to Cloud ✨";
+        btn.innerText = "Upload Photo ✨";
     }
 
     function loadPhotos(uid) {
@@ -139,10 +142,8 @@
     document.addEventListener('mousemove', (e) => {
         if(Math.random() > 0.8) {
             const h = document.createElement('div');
-            h.className = 'heart';
-            h.innerHTML = "❤️";
-            h.style.left = e.clientX + 'px';
-            h.style.top = e.clientY + 'px';
+            h.className = 'heart'; h.innerHTML = "❤️";
+            h.style.left = e.clientX + 'px'; h.style.top = e.clientY + 'px';
             h.style.setProperty('--x', (Math.random() * 100 - 50) + 'px');
             h.style.setProperty('--y', (Math.random() * -100 - 50) + 'px');
             document.body.appendChild(h);
