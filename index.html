@@ -24,8 +24,6 @@
         .img-card { width: 100%; height: 100%; object-fit: cover; }
         #modal { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index: 10000; display:none; flex-direction: column; align-items:center; justify-content:center; }
         #modal img { max-width: 90%; max-height: 70%; border-radius: 15px; border: 2px solid white; }
-        .heart { position: fixed; color: var(--main-color); font-size: 18px; pointer-events: none; animation: fly 1s linear forwards; z-index: 9999; }
-        @keyframes fly { 0% { transform: translate(0,0); opacity:1; } 100% { transform: translate(var(--x), var(--y)); opacity:0; } }
     </style>
 </head>
 <body>
@@ -95,16 +93,27 @@
     function handleAuth() {
         const email = document.getElementById('email').value;
         const pass = document.getElementById('pass').value;
+        
         if(isLogin) {
             auth.signInWithEmailAndPassword(email, pass)
-                .then(u => showUploadScreen(u.user.uid))
-                .catch(err => {
-                    alert(err.message);
-                    document.getElementById('forgot-password').classList.remove('hidden');
-                });
+                .then(u => {
+                    // Check if email is verified
+                    if(u.user.emailVerified) {
+                        showUploadScreen(u.user.uid);
+                    } else {
+                        alert("Pehle email verify karein! Check your Inbox/Spam.");
+                        auth.signOut();
+                    }
+                })
+                .catch(err => alert(err.message));
         } else {
             auth.createUserWithEmailAndPassword(email, pass)
-                .then(() => alert("Account Created! Pehle Login karein."))
+                .then(u => {
+                    u.user.sendEmailVerification().then(() => {
+                        alert("Account Created! Verification email bhej diya gaya hai. 📩");
+                        toggleMode();
+                    });
+                })
                 .catch(err => alert(err.message));
         }
     }
@@ -141,7 +150,7 @@
                 body: formData
             });
             const data = await res.json();
-            // Yahan 'photos' folder use ho raha hai jaisa aapne screenshot mein dikhaya
+            // Database path 'photos/' is correct as per your screenshot
             db.ref('photos/' + window.currentUid).push(data.data.url);
             alert("Memory Saved! ❤️");
         } catch (e) { alert("Error uploading!"); }
@@ -150,6 +159,7 @@
 
     function loadGallery() {
         const galDiv = document.getElementById('gallery');
+        // Hum photos folder ko list karenge
         db.ref('photos/' + window.currentUid).on('value', snap => {
             galDiv.innerHTML = "";
             snap.forEach(child => {
