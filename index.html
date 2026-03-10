@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ultimate Memories 💖</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.8/css/intlTelInput.css"/>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.8/js/intlTelInput.min.js"></script>
+    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
@@ -14,24 +17,22 @@
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg-color); margin: 0; padding: 20px; height: 100vh; display: flex; align-items: center; justify-content: center; overflow: hidden; }
         .box { width: 90%; max-width: 380px; background: white; padding: 30px; border-radius: 25px; box-shadow: 0 10px 40px rgba(214, 51, 132, 0.1); border: 1px solid #ffdae9; text-align: center; position: relative; }
         h1 { color: var(--main-color); margin-bottom: 20px; font-size: 24px; }
-        .input-group { position: relative; width: 100%; margin: 10px 0; }
+        .input-group { position: relative; width: 100%; margin: 10px 0; text-align: left; }
         input { width: 100%; padding: 14px; border: 1px solid #fbcfe8; border-radius: 12px; outline: none; box-sizing: border-box; background: #fff9fb; font-size: 16px; }
+        .iti { width: 100%; margin: 10px 0; } /* Country dropdown fix */
         .toggle-pass { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #aaa; font-size: 18px; z-index: 5; }
         .btn { background: var(--main-color); color: white; border: none; padding: 15px; border-radius: 15px; cursor: pointer; width: 100%; font-weight: bold; margin-top: 10px; font-size: 16px; }
-        .btn-sec { background: white; color: var(--main-color); border: 2px solid var(--main-color); }
         .hidden { display: none !important; }
-        #gallery { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; overflow-y: auto; max-height: 300px; }
-        .img-wrap { position: relative; height: 120px; border-radius: 15px; overflow: hidden; }
-        .thumb { width: 100%; height: 100%; object-fit: cover; }
-        .heart-particle { position: fixed; pointer-events: none; color: var(--main-color); font-size: 20px; animation: fly 1s linear forwards; }
-        @keyframes fly { 0% { transform: translateY(0); opacity: 1; } 100% { transform: translateY(-100px); opacity: 0; } }
+        #recaptcha-container { margin-top: 10px; }
     </style>
 </head>
 <body>
 
     <div id="screen-login" class="box animate__animated animate__fadeInDown">
         <h1>🔑 Login</h1>
-        <div class="input-group"><input type="text" id="log-phone" placeholder="Number (Ex: 876xxx)"></div>
+        <div class="input-group">
+            <input type="text" id="log-phone" placeholder="Enter Mobile Number">
+        </div>
         <div class="input-group">
             <input type="password" id="log-pass" placeholder="Secret Password">
             <span class="toggle-pass" onclick="togglePass('log-pass')">👁️</span>
@@ -42,9 +43,12 @@
 
     <div id="screen-register" class="box hidden animate__animated animate__fadeInDown">
         <h1>📝 Register</h1>
-        <input type="text" id="reg-phone" placeholder="+91XXXXXXXXXX">
+        <div class="input-group">
+            <input type="tel" id="reg-phone">
+        </div>
         <div id="recaptcha-container"></div>
-        <button class="btn" id="send-otp-btn" onclick="sendOTP()">Send OTP</button>
+        <button class="btn" id="send-otp-btn" onclick="sendOTP()">Send Verification Code</button>
+        
         <div id="otp-section" class="hidden">
             <input type="text" id="otp-code" placeholder="Enter 6-digit OTP">
             <div class="input-group">
@@ -56,18 +60,15 @@
         <p onclick="switchTo('login')" style="cursor:pointer; color:#d63384; font-size:14px; margin-top:15px;">Back to Login</p>
     </div>
 
-    <div id="screen-menu" class="box hidden animate__animated animate__zoomIn">
-        <h1>Dashboard 💖</h1>
-        <div id="gallery-container">
-            <input type="file" id="filePicker" style="font-size: 12px;">
-            <button class="btn" onclick="uploadImg()">Save to Cloud ✨</button>
-            <div id="gallery"></div>
-        </div>
-        <button onclick="location.reload()" style="background:none; border:none; color:#aaa; margin-top:20px; cursor:pointer;">Logout</button>
-    </div>
-
 <script>
-    // 1. Config
+    // Initialize Country Code
+    const phoneInput = document.querySelector("#reg-phone");
+    const iti = window.intlTelInput(phoneInput, {
+        initialCountry: "in", // India by default
+        separateDialCode: true,
+        utilsScript: "https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.8/js/utils.js",
+    });
+
     const firebaseConfig = {
         apiKey: "AIzaSyA7fMm1LjMOz4BefGk60cmMuSoFzBvJapg",
         databaseURL: "https://ultimatememories-64a97-default-rtdb.firebaseio.com",
@@ -78,11 +79,7 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
     const auth = firebase.auth();
-    const IMGBB_KEY = "cb53c38c41a5ce7d642d1152d306da9a";
-    let userPh = null;
-    let confirmationResult;
 
-    // 2. Navigation
     function switchTo(page) {
         document.querySelectorAll('.box').forEach(b => b.classList.add('hidden'));
         document.getElementById(page === 'login' ? 'screen-login' : 'screen-register').classList.remove('hidden');
@@ -93,14 +90,14 @@
         p.type = p.type === "password" ? "text" : "password";
     }
 
-    // 3. Auth Logic
     function sendOTP() {
-        const ph = document.getElementById('reg-phone').value.trim();
-        if(!ph.startsWith('+91')) return alert("Please use +91 at start!");
+        const fullNumber = iti.getNumber(); // Auto adds +91
+        if(!iti.isValidNumber()) return alert("Invalid phone number!");
+
         window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', { 'size': 'invisible' });
-        auth.signInWithPhoneNumber(ph, window.recaptchaVerifier).then(res => {
-            confirmationResult = res;
-            alert("OTP Sent!");
+        auth.signInWithPhoneNumber(fullNumber, window.recaptchaVerifier).then(res => {
+            window.confirmationResult = res;
+            alert("OTP Sent to " + fullNumber);
             document.getElementById('otp-section').classList.remove('hidden');
             document.getElementById('send-otp-btn').classList.add('hidden');
         }).catch(err => alert(err.message));
@@ -109,8 +106,9 @@
     function verifyOTP() {
         const code = document.getElementById('otp-code').value;
         const pass = document.getElementById('reg-pass').value;
-        const ph = document.getElementById('reg-phone').value.trim().replace('+', '');
-        confirmationResult.confirm(code).then(() => {
+        const ph = iti.getNumber().replace('+', ''); // Save without +
+        
+        window.confirmationResult.confirm(code).then(() => {
             db.ref('users/' + ph).set({ password: pass }).then(() => {
                 alert("Verified! Now Login.");
                 location.reload();
@@ -121,46 +119,13 @@
     function handleLogin() {
         const ph = document.getElementById('log-phone').value.trim();
         const ps = document.getElementById('log-pass').value.trim();
+        // Login mein hum user ko freedom de rahe hai number likhne ki
         db.ref('users/' + ph).once('value', s => {
             if(s.exists() && s.val().password === ps) {
-                userPh = ph;
-                document.getElementById('screen-login').classList.add('hidden');
-                document.getElementById('screen-menu').classList.remove('hidden');
-                loadPhotos();
+                alert("Login Success!");
+                // Yahan aap apna dashboard logic daal sakti hain
             } else { alert("Invalid Number or Password!"); }
         });
-    }
-
-    // 4. Photos Logic
-    async function uploadImg() {
-        const file = document.getElementById('filePicker').files[0];
-        if(!file) return alert("Select photo!");
-        const fd = new FormData(); fd.append("image", file);
-        const res = await fetch("https://api.imgbb.com/1/upload?key="+IMGBB_KEY, {method:"POST", body:fd});
-        const data = await res.json();
-        db.ref('pics/'+userPh).push(data.data.url);
-        alert("Saved! ✅");
-    }
-
-    function loadPhotos() {
-        const gal = document.getElementById('gallery');
-        db.ref('pics/'+userPh).on('value', snap => {
-            gal.innerHTML = "";
-            snap.forEach(child => {
-                const img = document.createElement('img');
-                img.src = child.val(); img.className = "thumb";
-                const wrap = document.createElement('div'); wrap.className = "img-wrap";
-                wrap.appendChild(img); gal.prepend(wrap);
-            });
-        });
-    }
-
-    // 5. Hearts Effect
-    document.addEventListener('mousemove', (e) => { if(Math.random() > 0.9) createHeart(e.clientX, e.clientY); });
-    function createHeart(x, y) {
-        const h = document.createElement('div'); h.innerHTML = "❤️"; h.className = 'heart-particle';
-        h.style.left = x + 'px'; h.style.top = y + 'px'; document.body.appendChild(h);
-        setTimeout(() => h.remove(), 1000);
     }
 </script>
 </body>
