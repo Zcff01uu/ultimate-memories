@@ -3,92 +3,117 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Memories Social 💖</title>
+    <title>Ultimate Memories 💖</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    
     <style>
-        :root { --main-color: #d63384; --bg-color: #fff5f8; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg-color); margin: 0; display: flex; justify-content: center; min-height: 100vh; }
-        .box { width: 100%; max-width: 400px; background: white; min-height: 100vh; position: relative; display: flex; flex-direction: column; box-shadow: 0 0 20px rgba(0,0,0,0.1); }
+        :root { --main-color: #d63384; --bg-color: #ffffff; --insta-gray: #fafafa; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: var(--insta-gray); margin: 0; display: flex; justify-content: center; }
         
-        /* Auth Screen */
-        #screen-auth { padding: 40px 20px; text-align: center; height: 100vh; display: flex; flex-direction: column; justify-content: center; box-sizing: border-box; }
-        input { width: 100%; padding: 12px; border: 1.5px solid #fbcfe8; border-radius: 12px; outline: none; margin: 8px 0; background: #fff9fb; box-sizing: border-box; }
-        .btn { background: var(--main-color); color: white; border: none; padding: 14px; border-radius: 12px; width: 100%; font-weight: bold; cursor: pointer; }
-        .toggle-text { cursor: pointer; color: var(--main-color); margin-top: 15px; font-size: 13px; font-weight: 500; }
+        .app-container { width: 100%; max-width: 450px; background: white; min-height: 100vh; position: relative; display: flex; flex-direction: column; box-shadow: 0 0 10px rgba(0,0,0,0.05); }
 
-        /* Dashboard & Nav */
-        #screen-main { display: none; flex-direction: column; height: 100vh; }
-        .bottom-nav { position: fixed; bottom: 0; width: 100%; max-width: 400px; background: white; display: flex; justify-content: space-around; padding: 12px 0; border-top: 1px solid #eee; z-index: 100; }
-        .nav-item { cursor: pointer; font-size: 22px; color: #ccc; }
-        .nav-item.active { color: var(--main-color); }
+        /* --- LOGIN SCREEN --- */
+        #screen-auth { padding: 40px 30px; display: flex; flex-direction: column; justify-content: center; height: 100vh; box-sizing: border-box; text-align: center; }
+        .insta-logo { font-family: 'Brush Script MT', cursive; font-size: 40px; margin-bottom: 30px; color: #262626; }
+        .auth-input { width: 100%; padding: 12px; border: 1px solid #dbdbdb; border-radius: 5px; background: var(--insta-gray); margin-bottom: 10px; font-size: 14px; }
+        .auth-btn { background: #0095f6; color: white; border: none; padding: 10px; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .toggle-link { color: #0095f6; font-size: 14px; margin-top: 20px; cursor: pointer; font-weight: 600; }
 
-        .content-section { flex: 1; padding: 15px; overflow-y: auto; display: none; margin-bottom: 70px; }
+        /* --- MAIN APP INTERFACE --- */
+        #screen-main { display: none; flex-direction: column; height: 100vh; width: 100%; }
+        
+        /* Header */
+        header { padding: 15px; border-bottom: 1px solid #dbdbdb; display: flex; justify-content: space-between; align-items: center; background: white; position: sticky; top: 0; z-index: 10; }
+        header h2 { margin: 0; font-size: 18px; }
+
+        /* Content Area */
+        .content-scroll { flex: 1; overflow-y: auto; padding-bottom: 70px; }
+        .section { display: none; padding: 10px; }
         .active-section { display: block; }
-        
-        #msg-container { display: flex; flex-direction: column; gap: 8px; padding-bottom: 10px; }
-        .msg { padding: 8px 12px; border-radius: 15px; max-width: 70%; font-size: 14px; word-wrap: break-word; }
-        .msg.sent { background: var(--main-color); color: white; align-self: flex-end; border-bottom-right-radius: 2px; }
-        .msg.received { background: #f1f1f1; color: #333; align-self: flex-start; border-bottom-left-radius: 2px; }
 
-        #gallery { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 2px; }
-        .img-container { aspect-ratio: 1/1; background: #eee; overflow: hidden; }
-        .img-card { width: 100%; height: 100%; object-fit: cover; }
+        /* Chat Style */
+        #msg-container { display: flex; flex-direction: column; gap: 8px; padding: 10px; }
+        .msg { padding: 10px 16px; border-radius: 20px; max-width: 75%; font-size: 14px; line-height: 1.4; }
+        .sent { background: #3797f0; color: white; align-self: flex-end; border-bottom-right-radius: 4px; }
+        .received { background: #efefef; color: #262626; align-self: flex-start; border-bottom-left-radius: 4px; }
+        
+        .chat-input-area { position: fixed; bottom: 65px; width: 100%; max-width: 450px; background: white; padding: 10px; display: flex; gap: 10px; border-top: 1px solid #dbdbdb; box-sizing: border-box; }
+        .chat-input { flex: 1; border: 1px solid #dbdbdb; border-radius: 20px; padding: 8px 15px; outline: none; }
+
+        /* Gallery Style */
+        .gallery-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; }
+        .gallery-item { aspect-ratio: 1/1; background: #eee; overflow: hidden; }
+        .gallery-item img { width: 100%; height: 100%; object-fit: cover; }
+
+        /* Bottom Navigation */
+        .bottom-nav { position: fixed; bottom: 0; width: 100%; max-width: 450px; background: white; border-top: 1px solid #dbdbdb; display: flex; justify-content: space-around; padding: 12px 0; z-index: 100; }
+        .nav-btn { cursor: pointer; font-size: 24px; color: #262626; filter: grayscale(1); transition: 0.2s; }
+        .nav-btn.active { filter: grayscale(0); transform: scale(1.1); }
+
+        .hidden { display: none !important; }
     </style>
 </head>
 <body>
 
-    <div class="box">
+    <div class="app-container">
         <div id="screen-auth" class="animate__animated animate__fadeIn">
-            <h1 id="auth-title" style="color:var(--main-color)">Login 💖</h1>
-            <input type="text" id="username" placeholder="Username">
-            <input type="password" id="pass" placeholder="Password">
-            <button class="btn" id="auth-btn" onclick="handleAuth()">Login Now</button>
-            <p class="toggle-text" onclick="toggleAuthMode()" id="toggle-link">New User? Register here</p>
+            <div class="insta-logo">Memories</div>
+            <input type="text" id="username" class="auth-input" placeholder="Username">
+            <input type="password" id="pass" class="auth-input" placeholder="Password">
+            <button class="auth-btn" id="btn-action" onclick="handleAuth()">Log In</button>
+            <div class="toggle-link" onclick="toggleMode()" id="mode-text">Don't have an account? Sign Up</div>
         </div>
 
         <div id="screen-main">
-            <div id="sec-home" class="content-section active-section">
-                <div style="padding-bottom: 15px; border-bottom: 1px solid #eee;">
-                    <input type="text" id="searchUser" placeholder="Find Username..." style="width:75%; display:inline-block;">
-                    <button onclick="sendRequest()" class="btn" style="width:20%; padding:10px;">Add</button>
-                    <div id="pending-list"></div>
-                </div>
-                
-                <div id="chat-area" style="margin-top:20px;">
-                    <h4 id="partner-status" style="text-align:center; color:#999;">Search a friend to start</h4>
+            <header>
+                <h2 id="header-title">Home</h2>
+                <span onclick="location.reload()" style="font-size: 12px; color: #999; cursor: pointer;">Logout</span>
+            </header>
+
+            <div class="content-scroll">
+                <div id="sec-home" class="section active-section">
                     <div id="msg-container"></div>
-                    <div style="display:flex; gap:5px; margin-top:10px;">
-                        <input type="text" id="msgInput" placeholder="Write message..." style="margin:0;">
-                        <button onclick="sendMsg()" class="btn" style="width:50px; margin:0;">➔</button>
+                    <div class="chat-input-area">
+                        <input type="text" id="msgInput" class="chat-input" placeholder="Message...">
+                        <button onclick="sendMsg()" style="background:none; border:none; color:#0095f6; font-weight:bold; cursor:pointer;">Send</button>
+                    </div>
+                </div>
+
+                <div id="sec-search" class="section">
+                    <div style="padding: 10px;">
+                        <input type="text" id="searchUser" class="auth-input" placeholder="Search username to add partner...">
+                        <button class="auth-btn" style="width:100%" onclick="sendRequest()">Send Friend Request</button>
+                        <div id="request-list" style="margin-top:20px;"></div>
+                    </div>
+                </div>
+
+                <div id="sec-gallery" class="section">
+                    <div class="gallery-grid" id="gallery"></div>
+                </div>
+
+                <div id="sec-upload" class="section">
+                    <div style="text-align:center; padding:50px 20px;">
+                        <h3>Create New Post</h3>
+                        <input type="file" id="filePicker" style="margin-bottom: 20px;">
+                        <button class="auth-btn" id="up-btn" onclick="uploadImg()">Share to Gallery</button>
                     </div>
                 </div>
             </div>
 
-            <div id="sec-gallery" class="content-section">
-                <h3>Shared Gallery 📸</h3>
-                <div id="gallery"></div>
-            </div>
-
-            <div id="sec-upload" class="content-section">
-                <h3>Post Photo ✨</h3>
-                <input type="file" id="filePicker">
-                <button class="btn" onclick="uploadImg()" id="up-btn">Upload to Shared Space</button>
-                <br><br>
-                <button onclick="location.reload()" style="background:none; border:none; color:red; cursor:pointer; font-size:12px;">Logout</button>
-            </div>
-
             <div class="bottom-nav">
-                <div class="nav-item active" onclick="showSec('home', this)">🏠</div>
-                <div class="nav-item" onclick="showSec('gallery', this)">📸</div>
-                <div class="nav-item" onclick="showSec('upload', this)">📤</div>
+                <div class="nav-btn active" onclick="changeTab('home', this)">🏠</div>
+                <div class="nav-btn" onclick="changeTab('search', this)">🔍</div>
+                <div class="nav-btn" onclick="changeTab('upload', this)">➕</div>
+                <div class="nav-btn" onclick="changeTab('gallery', this)">🖼️</div>
             </div>
         </div>
     </div>
 
 <script>
+    // Firebase Config (Aapka original config)
     const firebaseConfig = {
         apiKey: "AIzaSyA7fMm1LjMOz4BefGk60cmMuSoFzBvJapg",
         databaseURL: "https://ultimatememories-64a97-default-rtdb.firebaseio.com",
@@ -99,60 +124,67 @@
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const db = firebase.database();
-    
-    let isLoginMode = true;
+
+    let isLogin = true;
     let myUser = "", myUid = "", sharedId = "";
 
-    function toggleAuthMode() {
-        isLoginMode = !isLoginMode;
-        document.getElementById('auth-title').innerText = isLoginMode ? "Login 💖" : "Register 📝";
-        document.getElementById('auth-btn').innerText = isLoginMode ? "Login Now" : "Create Account";
-        document.getElementById('toggle-link').innerText = isLoginMode ? "New User? Register here" : "Already have an account? Login";
+    function toggleMode() {
+        isLogin = !isLogin;
+        document.getElementById('btn-action').innerText = isLogin ? "Log In" : "Sign Up";
+        document.getElementById('mode-text').innerText = isLogin ? "Don't have an account? Sign Up" : "Already have an account? Log In";
     }
 
     function handleAuth() {
         myUser = document.getElementById('username').value.trim().toLowerCase();
         const pass = document.getElementById('pass').value;
-        if(!myUser || !pass) return alert("Details bhariye!");
         const email = myUser + "@memories.com";
 
-        if(isLoginMode) {
-            auth.signInWithEmailAndPassword(email, pass)
-                .then(u => { myUid = u.user.uid; startApp(); })
-                .catch(() => alert("Wrong details or User not found!"));
+        if(isLogin) {
+            auth.signInWithEmailAndPassword(email, pass).then(u => { myUid = u.user.uid; startApp(); })
+            .catch(() => alert("Login failed! Check username/password."));
         } else {
-            auth.createUserWithEmailAndPassword(email, pass)
-                .then(u => {
-                    myUid = u.user.uid;
-                    db.ref('users/' + myUser).set(myUid);
-                    alert("Account Created! Login kijiye.");
-                    location.reload();
-                }).catch(e => alert(e.message));
+            auth.createUserWithEmailAndPassword(email, pass).then(u => {
+                myUid = u.user.uid;
+                db.ref('users/' + myUser).set(myUid);
+                alert("Account Created! Now Log In.");
+                location.reload();
+            }).catch(e => alert(e.message));
         }
     }
 
     function startApp() {
         document.getElementById('screen-auth').style.display = 'none';
         document.getElementById('screen-main').style.display = 'flex';
+        
+        // Listen for requests
         db.ref('requests/' + myUid).on('value', s => {
-            const list = document.getElementById('pending-list');
-            list.innerHTML = "";
+            const list = document.getElementById('request-list');
+            list.innerHTML = "<h4>Pending Requests</h4>";
             s.forEach(child => {
-                list.innerHTML += `<div style="background:#fff0f5; padding:8px; border-radius:10px; margin-top:5px; font-size:12px; display:flex; justify-content:space-between;">
-                    ${child.key} wants to connect <button onclick="acceptReq('${child.key}', '${child.val()}')" style="background:#2ecc71; color:white; border:none; padding:2px 8px; border-radius:5px;">Accept</button>
+                list.innerHTML += `<div style="display:flex; justify-content:space-between; padding:10px; background:#fafafa; margin-bottom:5px; border-radius:5px;">
+                    <span>${child.key}</span>
+                    <button onclick="acceptReq('${child.key}', '${child.val()}')" style="background:#0095f6; color:white; border:none; padding:5px 10px; border-radius:4px;">Accept</button>
                 </div>`;
             });
         });
         checkPartner();
     }
 
+    function changeTab(tabId, el) {
+        document.querySelectorAll('.section').forEach(s => s.classList.remove('active-section'));
+        document.querySelectorAll('.nav-btn').forEach(n => n.classList.remove('active'));
+        document.getElementById('sec-' + tabId).classList.add('active-section');
+        el.classList.add('active');
+        document.getElementById('header-title').innerText = tabId.charAt(0).toUpperCase() + tabId.slice(1);
+    }
+
+    // --- Social & Chat Logic ---
     function sendRequest() {
         const target = document.getElementById('searchUser').value.trim().toLowerCase();
-        if(target === myUser) return alert("Khud ko add nahi kar sakte!");
         db.ref('users/' + target).once('value', s => {
             if(s.exists()) {
                 db.ref('requests/' + s.val() + '/' + myUser).set(myUid);
-                alert("Request Sent!");
+                alert("Request sent!");
             } else alert("User not found!");
         });
     }
@@ -167,9 +199,7 @@
     function checkPartner() {
         db.ref('partners/' + myUid).on('value', s => {
             if(s.exists()) {
-                const data = s.val();
-                sharedId = data.sId;
-                document.getElementById('partner-status').innerText = "Space shared with " + data.name;
+                sharedId = s.val().sId;
                 loadContent();
             }
         });
@@ -180,43 +210,37 @@
             const con = document.getElementById('msg-container'); con.innerHTML = "";
             snap.forEach(c => {
                 const d = c.val();
-                if(d && d.t) {
-                    con.innerHTML += `<div class="msg ${d.u===myUser?'sent':'received'}">${d.t}</div>`;
-                }
+                con.innerHTML += `<div class="msg ${d.u===myUser?'sent':'received'}">${d.t}</div>`;
             });
             con.scrollTop = con.scrollHeight;
         });
         db.ref('photos/' + sharedId).on('value', snap => {
             const gal = document.getElementById('gallery'); gal.innerHTML = "";
             snap.forEach(c => {
-                gal.innerHTML += `<div class="img-container"><img src="${c.val()}" class="img-card"></div>`;
+                gal.innerHTML += `<div class="gallery-item"><img src="${c.val()}"></div>`;
             });
         });
     }
 
     async function uploadImg() {
         const file = document.getElementById('filePicker').files[0];
-        if(!file || !sharedId) return alert("Pehle partner add karein!");
-        const btn = document.getElementById('up-btn'); btn.innerText = "Uploading...";
+        if(!file || !sharedId) return alert("Add a partner first!");
+        const btn = document.getElementById('up-btn'); btn.innerText = "Sharing...";
         const formData = new FormData(); formData.append("image", file);
         const res = await fetch("https://api.imgbb.com/1/upload?key=cb53c38c41a5ce7d642d1152d306da9a", {method:"POST", body:formData});
         const data = await res.json();
         db.ref('photos/' + sharedId).push(data.data.url);
-        btn.innerText = "Upload to Shared Space";
-        showSec('gallery', document.querySelectorAll('.nav-item')[1]);
+        btn.innerText = "Share to Gallery";
+        alert("Posted!");
+        changeTab('gallery', document.querySelectorAll('.nav-btn')[3]);
     }
 
     function sendMsg() {
         const t = document.getElementById('msgInput').value;
-        if(t && sharedId) db.ref('chats/' + sharedId).push({ u: myUser, t: t });
-        document.getElementById('msgInput').value = "";
-    }
-
-    function showSec(id, el) {
-        document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active-section'));
-        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-        document.getElementById('sec-' + id).classList.add('active-section');
-        el.classList.add('active');
+        if(t && sharedId) {
+            db.ref('chats/' + sharedId).push({ u: myUser, t: t });
+            document.getElementById('msgInput').value = "";
+        }
     }
 </script>
 </body>
