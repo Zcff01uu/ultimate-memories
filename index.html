@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ultimate Memories 💖</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+    
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
@@ -63,15 +64,18 @@
     </div>
 
 <script>
+    // UPDATED CONFIG (Sofia, maine wahi config use ki hai jo aapne abhi bheji)
     const firebaseConfig = {
-        apiKey: "AIzaSyA7fMm1LjMOz4BefGk60cmMuSoFzBvJapg",
-        authDomain: "ultimatememories-64a97.firebaseapp.com",
-        databaseURL: "https://ultimatememories-64a97-default-rtdb.firebaseio.com",
-        projectId: "ultimatememories-64a97",
-        storageBucket: "ultimatememories-64a97.firebasestorage.app",
-        messagingSenderId: "51388704426",
-        appId: "1:513888704426:web:8aa41aeb3eee1297117dd3"
+      apiKey: "AIzaSyA7fMm1LjMOz4BefGk60cmMuSoFzBvJapg",
+      authDomain: "ultimatememories-64a97.firebaseapp.com",
+      databaseURL: "https://ultimatememories-64a97-default-rtdb.firebaseio.com",
+      projectId: "ultimatememories-64a97",
+      storageBucket: "ultimatememories-64a97.firebasestorage.app",
+      messagingSenderId: "513888704426",
+      appId: "1:513888704426:web:b1476d30698d45dd117dd3",
+      measurementId: "G-PQFN4N56FZ"
     };
+
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const db = firebase.database();
@@ -97,7 +101,6 @@
         if(isLogin) {
             auth.signInWithEmailAndPassword(email, pass)
                 .then(u => {
-                    // Check if email is verified
                     if(u.user.emailVerified) {
                         showUploadScreen(u.user.uid);
                     } else {
@@ -150,7 +153,7 @@
                 body: formData
             });
             const data = await res.json();
-            // Database path 'photos/' is correct as per your screenshot
+            // Path corrected to 'photos/'
             db.ref('photos/' + window.currentUid).push(data.data.url);
             alert("Memory Saved! ❤️");
         } catch (e) { alert("Error uploading!"); }
@@ -159,7 +162,6 @@
 
     function loadGallery() {
         const galDiv = document.getElementById('gallery');
-        // Hum photos folder ko list karenge
         db.ref('photos/' + window.currentUid).on('value', snap => {
             galDiv.innerHTML = "";
             snap.forEach(child => {
