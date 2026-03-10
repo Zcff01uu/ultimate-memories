@@ -6,101 +6,50 @@
     <title>Ultimate Memories 💖</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    
     <style>
         :root { --main-color: #d63384; --bg-color: #fff5f8; }
-        body { 
-            font-family: 'Segoe UI', sans-serif; background: var(--bg-color); 
-            margin: 0; padding: 20px; height: 100vh; display: flex; 
-            align-items: center; justify-content: center; overflow: hidden;
-        }
-        
-        /* Interactive Hearts Trail */
-        .heart-particle {
-            position: fixed; pointer-events: none; color: var(--main-color);
-            font-size: 20px; animation: fly 1s linear forwards; z-index: 9999;
-        }
-        @keyframes fly { 0% { transform: translateY(0) scale(1); opacity: 1; } 100% { transform: translateY(-100px) scale(0); opacity: 0; } }
-
-        .box { 
-            width: 90%; max-width: 380px; background: white; padding: 30px; 
-            border-radius: 25px; box-shadow: 0 10px 40px rgba(214, 51, 132, 0.1); 
-            border: 1px solid #ffdae9; text-align: center; position: relative; z-index: 10;
-        }
-        
-        h1 { color: var(--main-color); margin-bottom: 25px; font-size: 24px; }
-        .input-group { position: relative; width: 100%; margin: 10px 0; }
-        input { 
-            width: 100%; padding: 14px; border: 1px solid #fbcfe8; border-radius: 12px; 
-            outline: none; box-sizing: border-box; background: #fff9fb; font-size: 16px;
-        }
-        .toggle-pass { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #aaa; font-size: 18px; }
-
-        .btn { 
-            background: var(--main-color); color: white; border: none; padding: 15px; 
-            border-radius: 15px; cursor: pointer; width: 100%; font-weight: bold; 
-            margin-top: 15px; font-size: 16px; transition: 0.3s;
-        }
-        .btn-outline { background: none; color: var(--main-color); border: 2px solid var(--main-color); margin-top: 15px; }
-        
-        #gallery { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
-        .img-wrap { position: relative; height: 120px; border-radius: 15px; overflow: hidden; }
-        .thumb { width: 100%; height: 100%; object-fit: cover; cursor: pointer; }
-        .del-icon { position: absolute; top: 5px; right: 5px; background: red; color: white; border: none; border-radius: 50%; width: 20px; height: 20px; cursor: pointer; font-size: 10px; }
-
-        #zoom-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 10000; align-items: center; justify-content: center; }
-        #full-res-img { max-width: 90%; max-height: 80%; border: 3px solid white; border-radius: 10px; }
-        
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg-color); margin: 0; padding: 20px; height: 100vh; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+        .box { width: 90%; max-width: 380px; background: white; padding: 30px; border-radius: 25px; box-shadow: 0 10px 40px rgba(214, 51, 132, 0.1); border: 1px solid #ffdae9; text-align: center; position: relative; z-index: 10; }
+        h1 { color: var(--main-color); margin-bottom: 20px; font-size: 24px; }
+        input { width: 100%; padding: 14px; margin: 10px 0; border: 1px solid #fbcfe8; border-radius: 12px; outline: none; box-sizing: border-box; background: #fff9fb; font-size: 16px; }
+        .btn { background: var(--main-color); color: white; border: none; padding: 15px; border-radius: 15px; cursor: pointer; width: 100%; font-weight: bold; margin-top: 10px; font-size: 16px; }
         .hidden { display: none; }
-        .error-msg { color: #d63384; font-size: 13px; margin-top: 10px; font-weight: bold; }
+        #recaptcha-container { margin-top: 10px; }
+        .heart-particle { position: fixed; pointer-events: none; color: var(--main-color); font-size: 20px; animation: fly 1s linear forwards; }
+        @keyframes fly { 0% { transform: translateY(0); opacity: 1; } 100% { transform: translateY(-100px); opacity: 0; } }
     </style>
 </head>
 <body>
 
-    <div id="zoom-modal" onclick="closeZoom()"><img id="full-res-img" src=""></div>
-
     <div id="screen-login" class="box animate__animated animate__fadeInDown">
         <h1>🔑 Login</h1>
-        <div class="input-group"><input type="text" id="log-phone" placeholder="Mobile Number"></div>
-        <div class="input-group">
-            <input type="password" id="log-pass" placeholder="Secret Password">
-            <span class="toggle-pass" onclick="togglePass('log-pass')">👁️</span>
-        </div>
+        <input type="text" id="log-phone" placeholder="Mobile Number (with +91)">
+        <input type="password" id="log-pass" placeholder="Password">
         <button class="btn" onclick="handleLogin()">Login</button>
-        <div id="log-status" class="error-msg"></div>
-        <p onclick="switchTo('register')" style="cursor:pointer; color:#d63384; font-size:14px; text-decoration:underline; margin-top:15px;">New User? Create Account</p>
+        <p onclick="switchTo('register')" style="cursor:pointer; color:#d63384; font-size:14px; margin-top:15px;">New User? Create Account</p>
     </div>
 
     <div id="screen-register" class="box hidden animate__animated animate__fadeInDown">
         <h1>📝 Register</h1>
-        <div class="input-group"><input type="text" id="reg-phone" placeholder="Mobile Number"></div>
-        <div class="input-group">
-            <input type="password" id="reg-pass" placeholder="Secret Password">
-            <span class="toggle-pass" onclick="togglePass('reg-pass')">👁️</span>
+        <input type="text" id="reg-phone" placeholder="+91XXXXXXXXXX">
+        <div id="recaptcha-container"></div>
+        <button class="btn" id="send-otp-btn" onclick="sendOTP()">Send OTP</button>
+        
+        <div id="otp-section" class="hidden">
+            <input type="text" id="otp-code" placeholder="Enter 6-digit OTP">
+            <input type="password" id="reg-pass" placeholder="Create Secret Password">
+            <button class="btn" onclick="verifyOTP()">Verify & Register</button>
         </div>
-        <button class="btn" onclick="handleRegister()">Create Account</button>
-        <div id="reg-status" class="error-msg"></div>
-        <p onclick="switchTo('login')" style="cursor:pointer; color:#d63384; font-size:14px; text-decoration:underline; margin-top:15px;">Already have an account? Login</p>
+        <p onclick="switchTo('login')" style="cursor:pointer; color:#d63384; font-size:14px; margin-top:15px;">Back to Login</p>
     </div>
 
-    <div id="screen-menu" class="box hidden animate__animated animate__zoomIn">
+    <div id="screen-menu" class="box hidden">
         <h1>Welcome 💖</h1>
-        <button class="btn" onclick="showScreen('upload-page')">📤 Upload Photo</button>
-        <button class="btn btn-outline" onclick="showScreen('gallery-page')">🖼️ See Memories</button>
-        <button onclick="location.reload()" style="background:none; border:none; color:#aaa; margin-top:25px; cursor:pointer;">Logout</button>
-    </div>
-
-    <div id="upload-page" class="box hidden">
-        <h1>Add Memory</h1>
-        <input type="file" id="filePicker">
-        <button class="btn" onclick="uploadImg()">Save ✨</button>
-        <button class="btn btn-outline" onclick="showScreen('screen-menu')">Back</button>
-    </div>
-
-    <div id="gallery-page" class="box hidden">
-        <h1>Memories</h1>
-        <div id="gallery"></div>
-        <button class="btn btn-outline" onclick="showScreen('screen-menu')">Back</button>
+        <p>Aapka account verify ho gaya hai!</p>
+        <button class="btn" onclick="location.reload()">Logout</button>
     </div>
 
 <script>
@@ -108,100 +57,78 @@
         apiKey: "AIzaSyA7fMm1LjMOz4BefGk60cmMuSoFzBvJapg",
         databaseURL: "https://ultimatememories-64a97-default-rtdb.firebaseio.com",
         projectId: "ultimatememories-64a97",
-        appId: "1:513888704426:web:b1476d30698d45dd117dd3"
+        appId: "1:513888704426:web:b1476d30698d45dd117dd3",
+        authDomain: "ultimatememories-64a97.firebaseapp.com"
     };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
-    const IMGBB_KEY = "cb53c38c41a5ce7d642d1152d306da9a";
+    const auth = firebase.auth();
 
-    let userPh = null;
+    let confirmationResult;
 
-    // Fixed Navigation
     function switchTo(page) {
         document.getElementById('screen-login').classList.add('hidden');
         document.getElementById('screen-register').classList.add('hidden');
-        const target = page === 'login' ? 'screen-login' : 'screen-register';
-        document.getElementById(target).classList.remove('hidden');
+        document.getElementById(page === 'login' ? 'screen-login' : 'screen-register').classList.remove('hidden');
     }
 
-    function showScreen(id) {
-        document.querySelectorAll('.box').forEach(b => b.classList.add('hidden'));
-        document.getElementById(id).classList.remove('hidden');
-    }
-
-    // Fixed Login Logic
-    function handleLogin() {
-        const ph = document.getElementById('log-phone').value.trim();
-        const ps = document.getElementById('log-pass').value.trim();
-        const status = document.getElementById('log-status');
-        if(!ph || !ps) { status.innerText = "❌ Details bharo!"; return; }
-
-        db.ref('users/'+ph).once('value', s => {
-            if(s.exists() && s.val().password === ps) { 
-                userPh=ph; showScreen('screen-menu'); loadPhotos(); 
-            } else { status.innerText = "❌ Wrong Number or Password!"; }
-        });
-    }
-
-    // Fixed Unique Register Logic
-    function handleRegister() {
+    // --- STEP 1: OTP BHEJNA ---
+    function sendOTP() {
         const ph = document.getElementById('reg-phone').value.trim();
-        const ps = document.getElementById('reg-pass').value.trim();
-        const status = document.getElementById('reg-status');
-        if(!ph || !ps) { status.innerText = "❌ Details bharo!"; return; }
+        if(!ph.startsWith('+91')) return alert("Number +91 se start karein!");
 
-        db.ref('users/'+ph).once('value', s => {
-            if(s.exists()) { status.innerText = "❌ Already Registered!"; }
-            else {
-                db.ref('users/'+ph).set({password: ps}).then(() => {
-                    alert("Account Created! Ab Login karein.");
-                    switchTo('login');
-                });
+        window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', { 'size': 'invisible' });
+        
+        auth.signInWithPhoneNumber(ph, window.recaptchaVerifier)
+            .then((result) => {
+                confirmationResult = result;
+                alert("OTP bhej diya gaya hai!");
+                document.getElementById('otp-section').classList.remove('hidden');
+                document.getElementById('send-otp-btn').classList.add('hidden');
+            }).catch((err) => alert("Error: " + err.message));
+    }
+
+    // --- STEP 2: VERIFY & SAVE ---
+    function verifyOTP() {
+        const code = document.getElementById('otp-code').value;
+        const pass = document.getElementById('reg-pass').value;
+        const ph = document.getElementById('reg-phone').value.trim();
+
+        if(!code || !pass) return alert("OTP aur Password dono bhariye!");
+
+        confirmationResult.confirm(code).then((result) => {
+            // Success! Ab database mein save karte hain
+            db.ref('users/' + ph.replace('+', '')).set({
+                password: pass,
+                verified: true
+            }).then(() => {
+                alert("Verification Success! Ab login karein.");
+                location.reload();
+            });
+        }).catch(() => alert("Galat OTP!"));
+    }
+
+    function handleLogin() {
+        const ph = document.getElementById('log-phone').value.trim().replace('+', '');
+        const ps = document.getElementById('log-pass').value.trim();
+        
+        db.ref('users/' + ph).once('value', s => {
+            if(s.exists() && s.val().password === ps) {
+                document.getElementById('screen-login').classList.add('hidden');
+                document.getElementById('screen-menu').classList.remove('hidden');
+            } else {
+                alert("Wrong details!");
             }
         });
     }
 
-    function togglePass(id) {
-        const el = document.getElementById(id);
-        el.type = el.type === "password" ? "text" : "password";
-    }
-
-    // Hearts Effect
+    // Hearts effect
     document.addEventListener('mousemove', (e) => { if(Math.random() > 0.9) createHeart(e.clientX, e.clientY); });
-    document.addEventListener('touchstart', (e) => createHeart(e.touches[0].clientX, e.touches[0].clientY));
     function createHeart(x, y) {
         const h = document.createElement('div'); h.innerHTML = "❤️"; h.className = 'heart-particle';
         h.style.left = x + 'px'; h.style.top = y + 'px'; document.body.appendChild(h);
         setTimeout(() => h.remove(), 1000);
     }
-
-    // Image Functions (Upload, Gallery, Zoom, Delete)
-    async function uploadImg() {
-        const file = document.getElementById('filePicker').files[0];
-        if(!file) return alert("Select photo!");
-        const fd = new FormData(); fd.append("image", file);
-        const res = await fetch("https://api.imgbb.com/1/upload?key="+IMGBB_KEY, {method:"POST", body:fd});
-        const data = await res.json();
-        db.ref('pics/'+userPh).push(data.data.url);
-        alert("Saved! ✅"); showScreen('screen-menu');
-    }
-
-    function loadPhotos() {
-        const gal = document.getElementById('gallery');
-        db.ref('pics/'+userPh).on('value', snap => {
-            gal.innerHTML = "";
-            snap.forEach(child => {
-                const wrap = document.createElement('div'); wrap.className = 'img-wrap';
-                wrap.innerHTML = `<button class="del-icon" onclick="deletePic('${child.key}')">X</button>
-                                  <img src="${child.val()}" class="thumb" onclick="openZoom('${child.val()}')">`;
-                gal.prepend(wrap);
-            });
-        });
-    }
-
-    function deletePic(key) { if(confirm("Delete?")) db.ref('pics/'+userPh+'/'+key).remove(); }
-    function openZoom(url) { document.getElementById('full-res-img').src = url; document.getElementById('zoom-modal').style.display = "flex"; }
-    function closeZoom() { document.getElementById('zoom-modal').style.display = "none"; }
 </script>
 </body>
 </html>
