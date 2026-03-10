@@ -12,6 +12,7 @@
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; overflow: hidden; -webkit-user-select: none; }
         .container { width: 100%; max-width: 450px; background: white; height: 100vh; position: relative; margin: 0 auto; display: flex; flex-direction: column; }
         
+        /* Auth */
         #auth-view { padding: 40px 20px; text-align: center; background: white; height: 100%; display: flex; flex-direction: column; justify-content: center; z-index: 5000; position: absolute; width: 100%; box-sizing: border-box; }
         .logo { font-family: 'Brush Script MT', cursive; font-size: 45px; color: var(--accent); margin-bottom: 20px; }
         .inp { width: 90%; padding: 12px; margin: 8px 0; border: 1px solid #ffc1e3; border-radius: 8px; outline: none; background: #fffcfd; }
@@ -22,28 +23,31 @@
         .view { flex: 1; overflow-y: auto; padding-bottom: 80px; }
         .hidden { display: none !important; }
 
+        /* Feed Style */
+        .post { background: white; border-bottom: 8px solid #f0f0f0; padding-bottom: 10px; }
+        .post-header { display: flex; align-items: center; padding: 10px; gap: 10px; font-weight: bold; }
+        .post-img { width: 100%; aspect-ratio: 1/1; object-fit: cover; background: #eee; }
+        
         .item { padding: 15px; border-bottom: 1px solid #f9f9f9; display: flex; align-items: center; position: relative; cursor: pointer; }
-        .avatar { width: 45px; height: 45px; background: #ffd1dc; border-radius: 50%; margin-right: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; overflow: hidden; }
+        .avatar { width: 40px; height: 40px; background: #ffd1dc; border-radius: 50%; display: flex; align-items: center; justify-content: center; overflow: hidden; font-size: 18px; }
         .avatar img { width: 100%; height: 100%; object-fit: cover; }
         
         .dot { width: 10px; height: 10px; background: #ff3b7b; border-radius: 50%; position: absolute; right: 25px; border: 2px solid white; display: none; }
         .has-new .dot { display: block; }
         .heart-dot { width: 10px; height: 10px; background: red; border-radius: 50%; position: absolute; top: -2px; right: -5px; border: 2px solid white; display: none; }
 
-        #hold-menu { position: fixed; bottom: -100%; left: 0; width: 100%; background: white; border-radius: 20px 20px 0 0; box-shadow: 0 -5px 20px rgba(0,0,0,0.1); transition: 0.3s; z-index: 3000; padding: 20px 0; text-align: center; }
-        #hold-menu.show { bottom: 0; }
-        .menu-opt { padding: 15px; font-size: 18px; color: red; font-weight: bold; cursor: pointer; }
-        .overlay { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.4); display:none; z-index:2999; }
-
-        nav { position: absolute; bottom: 0; width: 100%; background: white; border-top: 1px solid #eee; display: flex; justify-content: space-around; padding: 12px 0; }
+        nav { position: absolute; bottom: 0; width: 100%; background: white; border-top: 1px solid #eee; display: flex; justify-content: space-around; padding: 12px 0; z-index: 100; }
         .nav-icon { font-size: 24px; color: #ccc; cursor: pointer; }
         .nav-icon.active { color: var(--accent); }
         
         #chat-view { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 2000; display: none; flex-direction: column; }
-        #msg-list { flex: 1; overflow-y: auto; padding: 15px; background: #fffafa; display: flex; flex-direction: column; gap: 10px; }
+        #msg-list { flex: 1; overflow-y: auto; padding: 15px; background: #fffafa; display: flex; flex-direction: column; gap: 8px; }
         .bubble { padding: 10px 15px; border-radius: 18px; max-width: 75%; font-size: 14px; word-wrap: break-word; }
         .sent { align-self: flex-end; background: var(--accent); color: white; }
-        .recv { align-self: flex-start; background: #f0f0f0; color: #333; }
+        .recv { align-self: flex-start; background: #f0f0f0; }
+
+        #hold-menu { position: fixed; bottom: -100%; left: 0; width: 100%; background: white; border-radius: 20px 20px 0 0; box-shadow: 0 -5px 20px rgba(0,0,0,0.1); transition: 0.3s; z-index: 3000; padding: 20px 0; text-align: center; }
+        #hold-menu.show { bottom: 0; }
     </style>
 </head>
 <body>
@@ -59,209 +63,163 @@
     <div id="app-view" class="hidden" style="height: 100%; display: flex; flex-direction: column;">
         <header>
             <div class="app-title">Memories</div>
-            <div style="position:relative; font-size:22px; cursor:pointer;" onclick="tab('notif')">
-                ❤️<div id="heart-dot" class="heart-dot"></div>
-            </div>
+            <div style="position:relative; font-size:22px; cursor:pointer;" onclick="tab('notif')">❤️<div id="heart-dot" class="heart-dot"></div></div>
         </header>
 
-        <div id="tab-home" class="view"><h4 style="margin:15px;">Messages</h4><div id="inbox"></div></div>
+        <div id="tab-home" class="view">
+            <div id="feed-container"></div>
+        </div>
+
+        <div id="tab-msg" class="view hidden">
+            <h4 style="margin:15px;">Inbox</h4>
+            <div id="inbox"></div>
+        </div>
+
         <div id="tab-search" class="view hidden">
-            <div style="padding:15px; display:flex; gap:5px;">
-                <input type="text" id="find-u" class="inp" style="margin:0; flex:1;" placeholder="Search...">
-                <button class="btn" style="width:auto; margin:0;" onclick="search()">Go</button>
-            </div>
+            <div style="padding:15px; display:flex; gap:5px;"><input type="text" id="find-u" class="inp" style="margin:0; flex:1;" placeholder="Search..."><button class="btn" style="width:auto; margin:0;" onclick="search()">Go</button></div>
             <div id="search-results"></div>
         </div>
+
         <div id="tab-notif" class="view hidden"><h4 style="margin:15px;">Requests</h4><div id="req-list"></div></div>
 
-        <div id="tab-profile" class="view hidden" style="text-align:center; padding-top:40px;">
-            <div class="avatar" id="profile-pic-container" style="width:100px; height:100px; margin:0 auto; border: 2px solid var(--accent);">👤</div>
-            <input type="file" id="pic-input" hidden accept="image/*" onchange="uploadPic(this)">
-            <button class="btn" style="width:150px; margin-top:10px; background:#fff; color:var(--accent); border:1px solid var(--accent);" onclick="document.getElementById('pic-input').click()">Add Pic</button>
-            <h2 id="my-name" style="margin-top:20px;">User</h2>
-            <button class="btn" style="width:120px; background:#eee; color:red;" onclick="logout()">Logout</button>
+        <div id="tab-profile" class="view hidden" style="text-align:center; padding-top:20px;">
+            <div class="avatar" id="my-pic" style="width:80px; height:80px; margin:0 auto; border:2px solid var(--accent);">👤</div>
+            <h3 id="my-name">User</h3>
+            <div style="display:flex; justify-content:center; gap:10px; padding:10px;">
+                <button class="btn" style="width:100px; background:white; color:var(--accent); border:1px solid var(--accent);" onclick="document.getElementById('p-in').click()">Add Pic</button>
+                <button class="btn" style="width:100px;" onclick="document.getElementById('f-in').click()">Post</button>
+            </div>
+            <input type="file" id="p-in" hidden onchange="uploadFile(this, 'pics')">
+            <input type="file" id="f-in" hidden onchange="uploadFile(this, 'feed')">
+            <button class="btn" style="width:120px; background:#eee; color:red; margin-top:20px;" onclick="logout()">Logout</button>
         </div>
 
         <nav>
             <div onclick="tab('home')" id="nav-home" class="nav-icon active">🏠</div>
+            <div onclick="tab('msg')" id="nav-msg" class="nav-icon">💬</div>
             <div onclick="tab('search')" id="nav-search" class="nav-icon">🔍</div>
             <div onclick="tab('profile')" id="nav-profile" class="nav-icon">👤</div>
         </nav>
     </div>
 
     <div id="chat-view">
-        <div style="padding:15px; border-bottom:1px solid #eee; display:flex; align-items:center; gap:10px;">
-            <span onclick="closeChat()" style="cursor:pointer; font-size:24px;">←</span>
-            <b id="chat-title">User</b>
-        </div>
+        <div style="padding:15px; border-bottom:1px solid #eee; display:flex; align-items:center; gap:10px;"><span onclick="closeChat()" style="font-size:24px;">←</span><b id="chat-title">User</b></div>
         <div id="msg-list"></div>
-        <div style="padding:10px; display:flex; gap:5px; border-top:1px solid #eee;">
-            <input type="text" id="msg-input" placeholder="Aa" class="inp" style="margin:0; flex:1; border-radius:20px;">
-            <button onclick="send()" style="border:none; background:none; color:var(--accent); font-weight:bold;">Send</button>
-        </div>
+        <div style="padding:10px; display:flex; gap:5px; border-top:1px solid #eee;"><input type="text" id="msg-input" placeholder="Aa" class="inp" style="margin:0; flex:1; border-radius:20px;"><button onclick="send()" style="border:none; background:none; color:var(--accent); font-weight:bold;">Send</button></div>
     </div>
 
-    <div class="overlay" id="overlay" onclick="closeMenu()"></div>
-    <div id="hold-menu">
+    <div id="hold-menu" onclick="this.classList.remove('show')">
         <div class="menu-opt" onclick="confirmDelete()">Delete Chat</div>
-        <div style="padding:15px; color:grey;" onclick="closeMenu()">Cancel</div>
+        <div style="padding:15px; color:grey;">Cancel</div>
     </div>
 </div>
 
 <script>
-    const firebaseConfig = {
-        apiKey: "AIzaSyA7fMm1LjMOz4BefGk60cmMuSoFzBvJapg",
-        databaseURL: "https://ultimatememories-64a97-default-rtdb.firebaseio.com",
-        projectId: "ultimatememories-64a97",
-        authDomain: "ultimatememories-64a97.firebaseapp.com"
-    };
+    const firebaseConfig = { apiKey: "AIzaSyA7fMm1LjMOz4BefGk60cmMuSoFzBvJapg", databaseURL: "https://ultimatememories-64a97-default-rtdb.firebaseio.com", projectId: "ultimatememories-64a97", authDomain: "ultimatememories-64a97.firebaseapp.com" };
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth(), db = firebase.database();
 
-    let myU = "", myId = "", activeRid = "", selectedU = "", holdTimer;
-    let isLoggingOut = false;
+    let myU = "", myId = "", activeRid = "", selectedU = "", holdTimer, isOut = false;
 
     auth.onAuthStateChanged(user => {
-        if(user && !isLoggingOut) {
+        if(user && !isOut) {
             db.ref('users').orderByValue().equalTo(user.uid).once('value', s => {
-                if(s.exists()){
-                    myU = Object.keys(s.val())[0]; myId = user.uid;
-                    document.getElementById('my-name').innerText = myU;
-                    document.getElementById('auth-view').classList.add('hidden');
-                    document.getElementById('app-view').classList.remove('hidden');
-                    loadMyPic();
-                    initApp();
-                }
+                myU = Object.keys(s.val())[0]; myId = user.uid;
+                document.getElementById('my-name').innerText = myU;
+                document.getElementById('auth-view').classList.add('hidden');
+                document.getElementById('app-view').classList.remove('hidden');
+                initApp();
             });
-        } else {
-            document.getElementById('auth-view').classList.remove('hidden');
-            document.getElementById('app-view').classList.add('hidden');
-        }
+        } else { document.getElementById('auth-view').classList.remove('hidden'); }
     });
 
-    function loadMyPic() {
-        db.ref('pics/' + myId).on('value', s => {
-            if(s.exists()) document.getElementById('profile-pic-container').innerHTML = `<img src="${s.val()}">`;
-        });
-    }
-
-    function uploadPic(input) {
-        const file = input.files[0];
-        if(!file) return;
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            const base64 = e.target.result;
-            db.ref('pics/' + myId).set(base64);
-        };
-        reader.readAsDataURL(file);
-    }
-
     async function handleAuth() {
-        isLoggingOut = false;
+        isOut = false;
         let u = document.getElementById('user-in').value.toLowerCase().trim();
         let p = document.getElementById('pass-in').value;
         if(u && p.length >= 6) {
             try { await auth.signInWithEmailAndPassword(u+"@m.com", p); }
-            catch(e) { 
-                let res = await auth.createUserWithEmailAndPassword(u+"@m.com", p);
-                await db.ref('users/'+u).set(res.user.uid);
-            }
+            catch(e) { let res = await auth.createUserWithEmailAndPassword(u+"@m.com", p); await db.ref('users/'+u).set(res.user.uid); }
         }
     }
 
-    function logout() { isLoggingOut = true; auth.signOut(); }
+    function uploadFile(input, type) {
+        const file = input.files[0]; if(!file) return;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const base64 = e.target.result;
+            if(type === 'pics') db.ref('pics/' + myId).set(base64);
+            else db.ref('feed').push({ u: myU, img: base64, time: Date.now() });
+        };
+        reader.readAsDataURL(file);
+    }
 
     function initApp() {
+        // Load Feed
+        db.ref('feed').on('value', s => {
+            const feed = document.getElementById('feed-container'); feed.innerHTML = "";
+            let posts = []; s.forEach(p => { posts.unshift(p.val()); });
+            posts.forEach(p => {
+                feed.innerHTML += `<div class="post"><div class="post-header"><b>${p.u}</b></div><img src="${p.img}" class="post-img"></div>`;
+            });
+        });
+
+        // Inbox
         db.ref('partners/' + myId).on('value', s => {
             const container = document.getElementById('inbox'); container.innerHTML = "";
             s.forEach(p => {
                 const name = p.key, rid = p.val().sId;
-                const div = document.createElement('div');
-                div.className = 'item'; div.id = 'chat-'+name;
-                div.innerHTML = `<div class="avatar" id="av-${name}">👤</div><div><b>${name}</b></div><div class="dot"></div>`;
-                
-                // Load partner pic
-                db.ref('users/'+name).once('value', us => {
-                    db.ref('pics/'+us.val()).once('value', ps => {
-                        if(ps.exists()) document.getElementById('av-'+name).innerHTML = `<img src="${ps.val()}">`;
-                    });
-                });
-
-                div.addEventListener('touchstart', () => { holdTimer = setTimeout(() => openMenu(name, rid), 800); });
-                div.addEventListener('touchend', () => { clearTimeout(holdTimer); });
+                const div = document.createElement('div'); div.className = 'item'; div.id = 'chat-'+name;
+                div.innerHTML = `<div class="avatar" id="av-${name}">👤</div><div style="margin-left:10px;"><b>${name}</b></div><div class="dot"></div>`;
+                div.addEventListener('touchstart', () => { holdTimer = setTimeout(() => { selectedU = name; activeRid = rid; document.getElementById('hold-menu').classList.add('show'); }, 800); });
+                div.addEventListener('touchend', () => clearTimeout(holdTimer));
                 div.onclick = () => openChat(name, rid);
                 container.appendChild(div);
+                db.ref('chats/'+rid).limitToLast(1).on('child_added', snap => { if(snap.val().u !== myU && activeRid !== rid) div.classList.add('has-new'); });
             });
         });
 
-        db.ref('requests/' + myId).on('value', s => {
+        // My Pic
+        db.ref('pics/' + myId).on('value', s => { if(s.exists()) document.getElementById('my-pic').innerHTML = `<img src="${s.val()}">`; });
+        
+        // Heart Dot
+        db.ref('requests/' + myId).on('value', s => { 
             document.getElementById('heart-dot').style.display = s.exists() ? 'block' : 'none';
-            const reqContainer = document.getElementById('req-list'); reqContainer.innerHTML = "";
-            s.forEach(r => {
-                reqContainer.innerHTML += `<div class="item"><b>${r.key}</b><button onclick="acceptReq('${r.key}','${r.val()}')" style="margin-left:auto; background:var(--accent); color:white; border:none; padding:8px 15px; border-radius:8px;">Accept</button></div>`;
-            });
+            const rl = document.getElementById('req-list'); rl.innerHTML = "";
+            s.forEach(r => { rl.innerHTML += `<div class="item"><b>${r.key}</b> <button onclick="acceptReq('${r.key}','${r.val()}')" style="margin-left:auto; background:var(--accent); color:white; border:none; padding:5px 10px; border-radius:5px;">Accept</button></div>`; });
         });
-    }
-
-    function openMenu(name, rid) { 
-        selectedU = name; activeRid = rid; 
-        document.getElementById('hold-menu').classList.add('show'); 
-        document.getElementById('overlay').style.display = 'block'; 
-    }
-    
-    function closeMenu() { document.getElementById('hold-menu').classList.remove('show'); document.getElementById('overlay').style.display = 'none'; }
-    
-    function confirmDelete() {
-        // Full Delete: Clear partner entry AND chat history
-        db.ref(`partners/${myId}/${selectedU}`).remove();
-        db.ref(`chats/${activeRid}`).remove();
-        closeMenu();
     }
 
     function openChat(name, rid) {
-        activeRid = rid;
-        document.getElementById('chat-'+name).classList.remove('has-new');
-        document.getElementById('chat-title').innerText = name;
+        activeRid = rid; document.getElementById('chat-title').innerText = name;
         document.getElementById('chat-view').style.display = 'flex';
+        document.getElementById('chat-'+name).classList.remove('has-new');
         db.ref('chats/'+rid).on('value', s => {
             const mBox = document.getElementById('msg-list'); mBox.innerHTML = "";
-            s.forEach(m => mBox.innerHTML += `<div class="bubble ${m.val().u === myU ? 'sent' : 'recv'}">${m.val().t}</div>`);
+            s.forEach(m => { mBox.innerHTML += `<div class="bubble ${m.val().u === myU ? 'sent' : 'recv'}">${m.val().t}</div>`; });
             mBox.scrollTop = mBox.scrollHeight;
         });
     }
 
     function send() {
         let t = document.getElementById('msg-input').value.trim();
-        if(t && activeRid) {
-            db.ref('chats/'+activeRid).push({ u: myU, t: t });
-            document.getElementById('msg-input').value = "";
-        }
+        if(t && activeRid) { db.ref('chats/'+activeRid).push({ u: myU, t: t }); document.getElementById('msg-input').value = ""; }
     }
 
-    function acceptReq(name, id) {
-        let room = myId < id ? myId+id : id+myId;
-        db.ref(`partners/${myId}/${name}`).set({ sId: room });
-        db.ref(`partners/${id}/${myU}`).set({ sId: room });
-        db.ref(`requests/${myId}/${name}`).remove();
-        tab('home');
-    }
-
+    function confirmDelete() { db.ref(`partners/${myId}/${selectedU}`).remove(); db.ref(`chats/${activeRid}`).remove(); }
+    function acceptReq(n, id) { let r = myId < id ? myId+id : id+myId; db.ref(`partners/${myId}/${n}`).set({ sId: r }); db.ref(`partners/${id}/${myU}`).set({ sId: r }); db.ref(`requests/${myId}/${n}`).remove(); tab('msg'); }
     function search() {
         let q = document.getElementById('find-u').value.toLowerCase().trim();
-        db.ref('users/'+q).once('value', s => {
-            if(s.exists() && q !== myU) {
-                document.getElementById('search-results').innerHTML = `<div class="item"><b>${q}</b> <button onclick="sendReq('${q}','${s.val()}')" style="margin-left:auto; padding:5px 15px;">Add</button></div>`;
-            } else alert("Not found");
-        });
+        db.ref('users/'+q).once('value', s => { if(s.exists() && q !== myU) document.getElementById('search-results').innerHTML = `<div class="item"><b>${q}</b><button onclick="sendReq('${q}','${s.val()}')" style="margin-left:auto;">Add</button></div>`; else alert("Not found"); });
     }
-
     function sendReq(n, id) { db.ref('requests/'+id+'/'+myU).set(myId); alert("Sent!"); }
+    function logout() { isOut = true; auth.signOut(); }
     function closeChat() { activeRid = ""; document.getElementById('chat-view').style.display = 'none'; }
     function tab(t) {
         document.querySelectorAll('.view').forEach(v => v.classList.add('hidden'));
         document.querySelectorAll('.nav-icon').forEach(i => i.classList.remove('active'));
         document.getElementById('tab-'+t).classList.remove('hidden');
-        if(document.getElementById('nav-'+t)) document.getElementById('nav-'+t).classList.add('active');
+        document.getElementById('nav-'+(t==='msg'?'msg':t)).classList.add('active');
     }
 </script>
 </body>
