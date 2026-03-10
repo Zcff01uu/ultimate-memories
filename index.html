@@ -4,71 +4,83 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ultimate Memories 💖</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.8/css/intlTelInput.css"/>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.8/js/intlTelInput.min.js"></script>
     
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.8/css/intlTelInput.css"/>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.8/js/intlTelInput.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     
     <style>
         :root { --main-color: #d63384; --bg-color: #fff5f8; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg-color); margin: 0; padding: 20px; height: 100vh; display: flex; align-items: center; justify-content: center; overflow: hidden; }
-        .box { width: 90%; max-width: 380px; background: white; padding: 30px; border-radius: 25px; box-shadow: 0 10px 40px rgba(214, 51, 132, 0.1); border: 1px solid #ffdae9; text-align: center; position: relative; }
-        h1 { color: var(--main-color); margin-bottom: 20px; font-size: 24px; }
-        .input-group { position: relative; width: 100%; margin: 10px 0; text-align: left; }
-        input { width: 100%; padding: 14px; border: 1px solid #fbcfe8; border-radius: 12px; outline: none; box-sizing: border-box; background: #fff9fb; font-size: 16px; }
-        .iti { width: 100%; margin: 10px 0; } /* Country dropdown fix */
-        .toggle-pass { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #aaa; font-size: 18px; z-index: 5; }
-        .btn { background: var(--main-color); color: white; border: none; padding: 15px; border-radius: 15px; cursor: pointer; width: 100%; font-weight: bold; margin-top: 10px; font-size: 16px; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg-color); margin: 0; padding: 10px; min-height: 100vh; display: flex; align-items: center; justify-content: center; overflow-x: hidden; }
+        .box { width: 95%; max-width: 400px; background: white; padding: 25px; border-radius: 30px; box-shadow: 0 15px 50px rgba(214, 51, 132, 0.15); border: 1px solid #ffdae9; text-align: center; }
+        h1 { color: var(--main-color); margin-bottom: 20px; font-size: 26px; }
+        .input-group { position: relative; width: 100%; margin: 12px 0; text-align: left; }
+        input { width: 100%; padding: 15px; border: 1.5px solid #fbcfe8; border-radius: 15px; outline: none; box-sizing: border-box; background: #fff9fb; font-size: 16px; transition: 0.3s; }
+        input:focus { border-color: var(--main-color); box-shadow: 0 0 8px rgba(214, 51, 132, 0.1); }
+        .iti { width: 100%; }
+        .toggle-pass { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); cursor: pointer; font-size: 20px; z-index: 10; }
+        .btn { background: var(--main-color); color: white; border: none; padding: 16px; border-radius: 18px; cursor: pointer; width: 100%; font-weight: bold; margin-top: 15px; font-size: 17px; box-shadow: 0 5px 15px rgba(214, 51, 132, 0.3); }
+        .btn:active { transform: scale(0.98); }
         .hidden { display: none !important; }
-        #recaptcha-container { margin-top: 10px; }
+        
+        /* Dashboard Styles */
+        #gallery { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 20px; padding-bottom: 20px; }
+        .img-card { width: 100%; height: 150px; border-radius: 15px; object-fit: cover; border: 3px solid white; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        .upload-area { background: #fff0f5; padding: 20px; border-radius: 20px; border: 2px dashed var(--main-color); margin-bottom: 20px; }
+        
+        .heart-particle { position: fixed; pointer-events: none; color: var(--main-color); font-size: 20px; animation: fly 1s linear forwards; z-index: 999; }
+        @keyframes fly { 0% { transform: translateY(0) scale(1); opacity: 1; } 100% { transform: translateY(-120px) scale(1.5); opacity: 0; } }
     </style>
 </head>
 <body>
 
-    <div id="screen-login" class="box animate__animated animate__fadeInDown">
+    <div id="screen-login" class="box animate__animated animate__fadeIn">
         <h1>🔑 Login</h1>
         <div class="input-group">
-            <input type="text" id="log-phone" placeholder="Enter Mobile Number">
+            <input type="text" id="log-phone" placeholder="Mobile Number">
         </div>
         <div class="input-group">
             <input type="password" id="log-pass" placeholder="Secret Password">
             <span class="toggle-pass" onclick="togglePass('log-pass')">👁️</span>
         </div>
-        <button class="btn" onclick="handleLogin()">Login</button>
-        <p onclick="switchTo('register')" style="cursor:pointer; color:#d63384; font-size:14px; margin-top:15px; text-decoration: underline;">New User? Create Account</p>
+        <button class="btn" onclick="handleLogin()">Enter Vault</button>
+        <p onclick="switchTo('register')" style="cursor:pointer; color:var(--main-color); font-size:14px; margin-top:20px;">New User? <b>Create Account</b></p>
     </div>
 
-    <div id="screen-register" class="box hidden animate__animated animate__fadeInDown">
+    <div id="screen-register" class="box hidden animate__animated animate__fadeIn">
         <h1>📝 Register</h1>
         <div class="input-group">
             <input type="tel" id="reg-phone">
         </div>
         <div id="recaptcha-container"></div>
-        <button class="btn" id="send-otp-btn" onclick="sendOTP()">Send Verification Code</button>
+        <button class="btn" id="send-otp-btn" onclick="sendOTP()">Send OTP</button>
         
         <div id="otp-section" class="hidden">
-            <input type="text" id="otp-code" placeholder="Enter 6-digit OTP">
+            <input type="text" id="otp-code" placeholder="Enter 6-digit OTP" style="margin-top:15px;">
             <div class="input-group">
                 <input type="password" id="reg-pass" placeholder="Set Password">
                 <span class="toggle-pass" onclick="togglePass('reg-pass')">👁️</span>
             </div>
             <button class="btn" onclick="verifyOTP()">Verify & Register</button>
         </div>
-        <p onclick="switchTo('login')" style="cursor:pointer; color:#d63384; font-size:14px; margin-top:15px;">Back to Login</p>
+        <p onclick="switchTo('login')" style="cursor:pointer; color:#aaa; font-size:14px; margin-top:20px;">Back to Login</p>
+    </div>
+
+    <div id="screen-menu" class="box hidden animate__animated animate__zoomIn" style="max-width: 500px; height: 85vh; overflow-y: auto;">
+        <h1>Your Memories 💖</h1>
+        <div class="upload-area">
+            <input type="file" id="filePicker" accept="image/*" style="font-size: 12px; margin-bottom: 10px;">
+            <button class="btn" onclick="uploadImg()" id="up-btn">Upload Photo ✨</button>
+        </div>
+        <div id="gallery"></div>
+        <button onclick="location.reload()" style="background:none; border:none; color:#ff4d4d; margin-top:30px; cursor:pointer; font-weight:bold;">Logout</button>
     </div>
 
 <script>
-    // Initialize Country Code
-    const phoneInput = document.querySelector("#reg-phone");
-    const iti = window.intlTelInput(phoneInput, {
-        initialCountry: "in", // India by default
-        separateDialCode: true,
-        utilsScript: "https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.8/js/utils.js",
-    });
-
+    // 1. Firebase Initialization
     const firebaseConfig = {
         apiKey: "AIzaSyA7fMm1LjMOz4BefGk60cmMuSoFzBvJapg",
         databaseURL: "https://ultimatememories-64a97-default-rtdb.firebaseio.com",
@@ -79,10 +91,21 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
     const auth = firebase.auth();
+    const IMGBB_KEY = "cb53c38c41a5ce7d642d1152d306da9a";
+    let userPh = null;
 
+    // 2. Country Code Setup
+    const phoneInput = document.querySelector("#reg-phone");
+    const iti = window.intlTelInput(phoneInput, {
+        initialCountry: "in",
+        separateDialCode: true,
+        utilsScript: "https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.8/js/utils.js",
+    });
+
+    // 3. UI Helpers
     function switchTo(page) {
         document.querySelectorAll('.box').forEach(b => b.classList.add('hidden'));
-        document.getElementById(page === 'login' ? 'screen-login' : 'screen-register').classList.remove('hidden');
+        document.getElementById('screen-' + page).classList.remove('hidden');
     }
 
     function togglePass(id) {
@@ -90,27 +113,30 @@
         p.type = p.type === "password" ? "text" : "password";
     }
 
+    // 4. Authentication Logic
     function sendOTP() {
-        const fullNumber = iti.getNumber(); // Auto adds +91
-        if(!iti.isValidNumber()) return alert("Invalid phone number!");
+        const fullNumber = iti.getNumber();
+        if(!iti.isValidNumber()) return alert("Please enter a valid number!");
 
         window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', { 'size': 'invisible' });
         auth.signInWithPhoneNumber(fullNumber, window.recaptchaVerifier).then(res => {
             window.confirmationResult = res;
-            alert("OTP Sent to " + fullNumber);
+            alert("OTP Sent!");
             document.getElementById('otp-section').classList.remove('hidden');
             document.getElementById('send-otp-btn').classList.add('hidden');
-        }).catch(err => alert(err.message));
+        }).catch(err => alert("Error: " + err.message));
     }
 
     function verifyOTP() {
         const code = document.getElementById('otp-code').value;
         const pass = document.getElementById('reg-pass').value;
-        const ph = iti.getNumber().replace('+', ''); // Save without +
-        
+        const ph = iti.getNumber().replace('+', ''); 
+
+        if(code.length < 6 || pass.length < 4) return alert("Fill all details properly!");
+
         window.confirmationResult.confirm(code).then(() => {
             db.ref('users/' + ph).set({ password: pass }).then(() => {
-                alert("Verified! Now Login.");
+                alert("Account Created! Please Login.");
                 location.reload();
             });
         }).catch(() => alert("Wrong OTP!"));
@@ -119,13 +145,68 @@
     function handleLogin() {
         const ph = document.getElementById('log-phone').value.trim();
         const ps = document.getElementById('log-pass').value.trim();
-        // Login mein hum user ko freedom de rahe hai number likhne ki
+        
         db.ref('users/' + ph).once('value', s => {
             if(s.exists() && s.val().password === ps) {
-                alert("Login Success!");
-                // Yahan aap apna dashboard logic daal sakti hain
-            } else { alert("Invalid Number or Password!"); }
+                userPh = ph;
+                // SWITCH TO DASHBOARD
+                document.getElementById('screen-login').classList.add('hidden');
+                document.getElementById('screen-menu').classList.remove('hidden');
+                loadPhotos();
+            } else {
+                alert("❌ Wrong Number or Password!");
+            }
         });
+    }
+
+    // 5. Gallery & Upload Logic
+    async function uploadImg() {
+        const file = document.getElementById('filePicker').files[0];
+        if(!file) return alert("Choose a photo first!");
+        
+        const btn = document.getElementById('up-btn');
+        btn.innerText = "Uploading... ⏳";
+        btn.disabled = true;
+
+        const fd = new FormData();
+        fd.append("image", file);
+        
+        try {
+            const res = await fetch("https://api.imgbb.com/1/upload?key=" + IMGBB_KEY, { method: "POST", body: fd });
+            const data = await res.json();
+            db.ref('pics/' + userPh).push(data.data.url);
+            alert("Memory Saved! ❤️");
+        } catch (e) {
+            alert("Upload failed!");
+        } finally {
+            btn.innerText = "Upload Photo ✨";
+            btn.disabled = false;
+        }
+    }
+
+    function loadPhotos() {
+        const gal = document.getElementById('gallery');
+        db.ref('pics/' + userPh).on('value', snap => {
+            gal.innerHTML = "";
+            snap.forEach(child => {
+                const img = document.createElement('img');
+                img.src = child.val();
+                img.className = "img-card animate__animated animate__fadeIn";
+                gal.prepend(img);
+            });
+        });
+    }
+
+    // 6. Interactive Hearts
+    document.addEventListener('click', (e) => createHeart(e.clientX, e.clientY));
+    function createHeart(x, y) {
+        const h = document.createElement('div');
+        h.innerHTML = "❤️";
+        h.className = 'heart-particle';
+        h.style.left = x + 'px';
+        h.style.top = y + 'px';
+        document.body.appendChild(h);
+        setTimeout(() => h.remove(), 1000);
     }
 </script>
 </body>
