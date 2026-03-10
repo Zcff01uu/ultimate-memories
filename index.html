@@ -17,30 +17,37 @@
         /* Login Screen */
         #screen-auth { padding: 40px; text-align: center; height: 100vh; display: flex; flex-direction: column; justify-content: center; box-sizing: border-box; }
         .logo { font-family: 'Brush Script MT', cursive; font-size: 45px; margin-bottom: 30px; }
-        input { width: 100%; padding: 12px; border: 1px solid #dbdbdb; border-radius: 5px; background: #fafafa; margin-bottom: 10px; box-sizing: border-box; }
-        .btn-blue { background: var(--insta-blue); color: white; border: none; padding: 10px; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%; }
+        input { width: 100%; padding: 12px; border: 1px solid #dbdbdb; border-radius: 8px; background: #fafafa; margin-bottom: 10px; box-sizing: border-box; font-size: 14px; }
+        .btn-blue { background: var(--insta-blue); color: white; border: none; padding: 10px; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%; transition: 0.3s; }
+        .btn-blue:active { opacity: 0.7; }
 
-        /* App Screens */
+        /* App Layout */
         #screen-main { display: none; flex-direction: column; height: 100vh; }
-        header { padding: 15px; border-bottom: 1px solid #dbdbdb; display: flex; justify-content: space-between; align-items: center; background: white; }
+        header { padding: 12px 15px; border-bottom: 1px solid #dbdbdb; display: flex; justify-content: space-between; align-items: center; background: white; position: sticky; top:0; z-index:10; }
         .content { flex: 1; overflow-y: auto; padding-bottom: 80px; }
         .page { display: none; padding: 15px; }
         .active-page { display: block; }
 
         /* Chat */
         #msg-box { display: flex; flex-direction: column; gap: 8px; padding: 10px; }
-        .m { padding: 10px 15px; border-radius: 20px; max-width: 75%; font-size: 14px; }
-        .s { background: var(--insta-blue); color: white; align-self: flex-end; }
-        .r { background: #efefef; color: black; align-self: flex-start; }
+        .m { padding: 10px 15px; border-radius: 20px; max-width: 75%; font-size: 14px; line-height: 1.4; }
+        .s { background: var(--insta-blue); color: white; align-self: flex-end; border-bottom-right-radius: 4px; }
+        .r { background: #efefef; color: black; align-self: flex-start; border-bottom-left-radius: 4px; }
+
+        /* Search Results Style */
+        .search-result-card { background: white; border: 1px solid #dbdbdb; padding: 15px; border-radius: 10px; display: flex; align-items: center; justify-content: space-between; margin-top: 15px; }
+        .user-info { display: flex; align-items: center; gap: 10px; }
+        .mini-avatar { width: 40px; height: 40px; background: #ddd; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; }
 
         /* Bottom Nav */
-        .nav { position: fixed; bottom: 0; width: 100%; max-width: 450px; background: white; border-top: 1px solid #dbdbdb; display: flex; justify-content: space-around; padding: 15px 0; }
-        .nav-i { font-size: 24px; cursor: pointer; color: #262626; position: relative; }
-        .dot { position: absolute; top: -2px; right: -2px; width: 10px; height: 10px; background: red; border-radius: 50%; display: none; }
+        .nav { position: fixed; bottom: 0; width: 100%; max-width: 450px; background: white; border-top: 1px solid #dbdbdb; display: flex; justify-content: space-around; padding: 12px 0; z-index: 100; }
+        .nav-i { font-size: 26px; cursor: pointer; color: #262626; position: relative; }
+        .dot { position: absolute; top: -2px; right: -2px; width: 10px; height: 10px; background: red; border-radius: 50%; border: 2px solid white; display: none; }
 
-        /* Profile Card */
-        .p-card { text-align: center; padding: 20px; }
-        .p-avatar { width: 80px; height: 80px; background: #eee; border-radius: 50%; margin: 0 auto 10px; display: flex; align-items: center; justify-content: center; font-size: 30px; border: 2px solid var(--main-color); }
+        /* Profile Section */
+        .p-header { text-align: center; padding: 30px 20px; border-bottom: 1px solid #efefef; }
+        .p-avatar { width: 90px; height: 90px; background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888); padding: 3px; border-radius: 50%; margin: 0 auto 15px; }
+        .p-avatar-inner { background: white; width: 100%; height: 100%; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 40px; }
     </style>
 </head>
 <body>
@@ -51,41 +58,50 @@
         <input type="text" id="user" placeholder="Username">
         <input type="password" id="pass" placeholder="Password">
         <button class="btn-blue" onclick="authMe()">Log In</button>
-        <p onclick="isReg=true; authMe()" style="color:var(--insta-blue); cursor:pointer; font-size:14px; margin-top:15px;">Create New Account</p>
+        <p onclick="isReg=true; authMe()" style="color:var(--insta-blue); cursor:pointer; font-size:13px; margin-top:20px; font-weight: 600;">Create New Account</p>
     </div>
 
     <div id="screen-main">
-        <header><b id="head-title">Memories</b> <span onclick="location.reload()" style="color:red; font-size:12px;">Logout</span></header>
+        <header><b id="head-title" style="font-size: 20px;">Memories</b> <span onclick="location.reload()" style="color:#999; font-size:12px; cursor:pointer;">Logout</span></header>
         
         <div class="content">
             <div id="p-home" class="page active-page">
+                <div id="chat-empty" style="text-align:center; padding:100px 20px; color:#999;">
+                    Connect with someone to start chatting!
+                </div>
                 <div id="msg-box"></div>
-                <div style="position:fixed; bottom:70px; width:100%; max-width:430px; display:flex; padding:10px; background:white; gap:5px;">
-                    <input type="text" id="mIn" placeholder="Message..." style="margin:0; border-radius:20px;">
-                    <button onclick="send()" style="border:none; color:var(--insta-blue); background:none; font-weight:bold;">Send</button>
+                <div id="chat-bar" style="display:none; position:fixed; bottom:65px; width:100%; max-width:430px; padding:10px; background:white; gap:5px; border-top:1px solid #dbdbdb;">
+                    <input type="text" id="mIn" placeholder="Message..." style="margin:0; border-radius:20px; padding-left:15px;">
+                    <button onclick="send()" style="border:none; color:var(--insta-blue); background:none; font-weight:bold; cursor:pointer; padding:0 10px;">Send</button>
                 </div>
             </div>
 
             <div id="p-search" class="page">
-                <input type="text" id="sUser" placeholder="Search username...">
-                <button class="btn-blue" onclick="req()">Send Request</button>
-                <div id="notif-area" style="margin-top:20px;"></div>
-            </div>
-
-            <div id="p-add" class="page" style="text-align:center;">
-                <h3>Upload Photo</h3>
-                <input type="file" id="f">
-                <button class="btn-blue" onclick="up()">Post to Gallery</button>
-            </div>
-
-            <div id="p-profile" class="page">
-                <div class="p-card">
-                    <div class="p-avatar">👤</div>
-                    <h2 id="my-name-display">Username</h2>
-                    <p style="color:#8e8e8e">Memories Member</p>
+                <div style="display:flex; gap:5px;">
+                    <input type="text" id="sUser" placeholder="Search for users..." style="margin:0;">
+                    <button class="btn-blue" style="width:80px;" onclick="findUser()">Search</button>
                 </div>
-                <hr style="border:0; border-top:1px solid #dbdbdb">
-                <div id="gal" style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:2px;"></div>
+                
+                <div id="search-result"></div> <div id="notif-area" style="margin-top:30px;">
+                    <h4 style="border-bottom:1px solid #dbdbdb; padding-bottom:10px;">Notifications</h4>
+                </div>
+            </div>
+
+            <div id="p-add" class="page" style="text-align:center; padding-top:50px;">
+                <div style="border: 2px dashed #dbdbdb; padding: 40px 20px; border-radius: 20px;">
+                    <h3 style="margin-top:0;">New Post</h3>
+                    <input type="file" id="f" style="border:none; background:none;">
+                    <button class="btn-blue" onclick="up()" id="upBtn">Share to Gallery</button>
+                </div>
+            </div>
+
+            <div id="p-profile" class="page" style="padding:0;">
+                <div class="p-header">
+                    <div class="p-avatar"><div class="p-avatar-inner">👤</div></div>
+                    <h3 id="my-name-display" style="margin:0;">Username</h3>
+                    <p style="color:#8e8e8e; font-size:14px;">Memories Social Member</p>
+                </div>
+                <div id="gal" style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:2px; padding:2px;"></div>
             </div>
         </div>
 
@@ -99,6 +115,7 @@
 </div>
 
 <script>
+    // Firebase Setup
     const firebaseConfig = {
         apiKey: "AIzaSyA7fMm1LjMOz4BefGk60cmMuSoFzBvJapg",
         databaseURL: "https://ultimatememories-64a97-default-rtdb.firebaseio.com",
@@ -113,19 +130,19 @@
     function authMe() {
         myU = document.getElementById('user').value.toLowerCase().trim();
         let p = document.getElementById('pass').value;
-        if(!myU || !p) return alert("Fill details!");
+        if(!myU || !p) return alert("Please enter details!");
         let e = myU + "@m.com";
         if(isReg) {
             auth.createUserWithEmailAndPassword(e, p).then(u => {
                 db.ref('users/'+myU).set(u.user.uid);
-                alert("Account Created! Login now."); location.reload();
+                alert("Welcome! Account created successfully."); location.reload();
             }).catch(err => alert(err.message));
         } else {
             auth.signInWithEmailAndPassword(e, p).then(u => {
                 myId = u.user.uid; 
                 document.getElementById('my-name-display').innerText = myU;
                 go();
-            }).catch(() => alert("Wrong credentials!"));
+            }).catch(() => alert("Wrong username or password!"));
         }
     }
 
@@ -133,42 +150,54 @@
         document.getElementById('screen-auth').style.display = 'none';
         document.getElementById('screen-main').style.display = 'flex';
         
-        // Listen Notifications
+        // Notifications & Requests Listener
         db.ref('requests/'+myId).on('value', snap => {
             let area = document.getElementById('notif-area');
-            area.innerHTML = "<h4>Notifications</h4>";
+            area.innerHTML = "<h4 style='border-bottom:1px solid #dbdbdb; padding-bottom:10px;'>Notifications</h4>";
             if(snap.exists()) document.getElementById('notif-dot').style.display = 'block';
             snap.forEach(c => {
-                area.innerHTML += `<div style="display:flex; justify-content:space-between; padding:10px; background:#fafafa; border:1px solid #eee; margin-bottom:5px;">
-                    <span><b>${c.key}</b> wants to connect</span>
-                    <button onclick="accept('${c.key}','${c.val()}')" style="background:var(--insta-blue); color:white; border:none; padding:5px; border-radius:4px;">Accept</button>
+                area.innerHTML += `<div class="search-result-card">
+                    <div class="user-info"><div class="mini-avatar">👤</div><b>${c.key}</b></div>
+                    <button onclick="accept('${c.key}','${c.val()}')" style="background:var(--insta-blue); color:white; border:none; padding:6px 12px; border-radius:5px; font-weight:bold; cursor:pointer;">Accept</button>
                 </div>`;
             });
         });
 
+        // Partner Sync Listener
         db.ref('partners/'+myId).on('value', snap => {
             if(snap.exists()) {
                 sId = snap.val().sId;
+                document.getElementById('chat-empty').style.display = 'none';
+                document.getElementById('chat-bar').style.display = 'flex';
                 sync();
             }
         });
     }
 
-    function tab(t) {
-        document.querySelectorAll('.page').forEach(p => p.classList.remove('active-page'));
-        document.getElementById('p-'+t).classList.add('active-page');
-        document.getElementById('head-title').innerText = t === 'home' ? 'Memories' : t.toUpperCase();
-        if(t === 'search') document.getElementById('notif-dot').style.display = 'none';
-    }
+    function findUser() {
+        let t = document.getElementById('sUser').value.toLowerCase().trim();
+        let resArea = document.getElementById('search-result');
+        resArea.innerHTML = "";
+        
+        if(t === myU) return alert("That's you! Search for a friend.");
 
-    function req() {
-        let t = document.getElementById('sUser').value.toLowerCase();
         db.ref('users/'+t).once('value', s => {
             if(s.exists()) {
-                db.ref('requests/'+s.val()+'/'+myU).set(myId);
-                alert("Request Sent!");
-            } else alert("User not found!");
+                resArea.innerHTML = `<div class="search-result-card animate__animated animate__fadeIn">
+                    <div class="user-info"><div class="mini-avatar">👤</div><b>${t}</b></div>
+                    <button onclick="req('${t}','${s.val()}')" id="sendBtn" style="background:var(--insta-blue); color:white; border:none; padding:6px 12px; border-radius:5px; font-weight:bold; cursor:pointer;">Add Friend</button>
+                </div>`;
+            } else {
+                resArea.innerHTML = `<p style="text-align:center; color:red; font-size:14px; margin-top:10px;">User not found!</p>`;
+            }
         });
+    }
+
+    function req(name, id) {
+        db.ref('requests/'+id+'/'+myU).set(myId);
+        document.getElementById('sendBtn').innerText = "Requested";
+        document.getElementById('sendBtn').style.background = "#dbdbdb";
+        document.getElementById('sendBtn').disabled = true;
     }
 
     function accept(name, id) {
@@ -176,6 +205,13 @@
         db.ref('partners/'+myId).set({name: name, sId: pair});
         db.ref('partners/'+id).set({name: myU, sId: pair});
         db.ref('requests/'+myId+'/'+name).remove();
+    }
+
+    function tab(t) {
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active-page'));
+        document.getElementById('p-'+t).classList.add('active-page');
+        document.getElementById('head-title').innerText = (t === 'home') ? 'Memories' : t.toUpperCase();
+        if(t === 'search') document.getElementById('notif-dot').style.display = 'none';
     }
 
     function sync() {
@@ -201,12 +237,16 @@
 
     async function up() {
         let f = document.getElementById('f').files[0];
-        if(!f || !sId) return alert("Add a partner first!");
+        if(!sId) return alert("Pehle partner add karo, phir upload hoga! ❤️");
+        if(!f) return alert("Photo toh select karo!");
+        
+        let b = document.getElementById('upBtn'); b.innerText = "Sharing...";
         let fd = new FormData(); fd.append("image", f);
         let r = await fetch("https://api.imgbb.com/1/upload?key=cb53c38c41a5ce7d642d1152d306da9a", {method:"POST", body:fd});
         let d = await r.json();
         db.ref('pics/'+sId).push(d.data.url);
-        alert("Posted!"); tab('profile');
+        b.innerText = "Share to Gallery";
+        alert("Memory Posted! Check your profile."); tab('profile');
     }
 </script>
 </body>
