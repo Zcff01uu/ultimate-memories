@@ -19,15 +19,16 @@
         input:focus { border-color: var(--main-color); }
         .toggle-pass { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); cursor: pointer; font-size: 20px; z-index: 15; }
         .btn { background: var(--main-color); color: white; border: none; padding: 16px; border-radius: 15px; width: 100%; font-weight: bold; cursor: pointer; margin-top: 15px; font-size: 17px; box-shadow: 0 5px 15px rgba(214, 51, 132, 0.3); }
+        .btn-secondary { background: #6c757d; margin-top: 10px; font-size: 14px; padding: 12px; }
         .hidden { display: none !important; }
         
         /* Dashboard Layout */
-        .upload-section { background: #fff0f5; padding: 15px; border-radius: 20px; border: 1px dashed var(--main-color); margin-bottom: 25px; }
-        .gallery-title { font-size: 18px; color: var(--main-color); margin-top: 20px; margin-bottom: 10px; font-weight: bold; border-top: 1px solid #ffdae9; padding-top: 15px; }
-        #gallery { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; max-height: 350px; overflow-y: auto; padding: 5px; }
+        .upload-section { background: #fff0f5; padding: 15px; border-radius: 20px; border: 1px dashed var(--main-color); margin-bottom: 15px; }
+        .gallery-container { margin-top: 20px; border-top: 1px solid #ffdae9; padding-top: 15px; }
+        .gallery-title { font-size: 18px; color: var(--main-color); margin-bottom: 10px; font-weight: bold; }
+        #gallery { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; max-height: 300px; overflow-y: auto; padding: 5px; }
         .img-card { width: 100%; height: 120px; object-fit: cover; border-radius: 12px; border: 2px solid white; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
         
-        /* Hearts Cursor */
         .heart { position: fixed; color: var(--main-color); font-size: 18px; pointer-events: none; animation: fly 1s linear forwards; z-index: 9999; }
         @keyframes fly { 0% { transform: translate(0, 0) scale(1); opacity: 1; } 100% { transform: translate(var(--x), var(--y)) scale(1.5); opacity: 0; } }
     </style>
@@ -55,8 +56,12 @@
             <button class="btn" onclick="uploadImg()" id="up-btn">Upload Photo ✨</button>
         </div>
 
-        <div class="gallery-title">📜 Memories Gallery</div>
-        <div id="gallery"></div>
+        <button class="btn btn-secondary" onclick="toggleGallery()" id="view-btn">See Photo 📸</button>
+
+        <div id="gallery-wrapper" class="gallery-container hidden">
+            <div class="gallery-title">📜 Memories Gallery</div>
+            <div id="gallery"></div>
+        </div>
         
         <button onclick="location.reload()" style="background:none; border:none; color:#aaa; margin-top:25px; cursor:pointer; font-size: 12px; text-decoration: underline;">Logout</button>
     </div>
@@ -90,6 +95,20 @@
         p.type = p.type === "password" ? "text" : "password";
     }
 
+    // NEW: Function to show/hide gallery
+    function toggleGallery() {
+        const wrapper = document.getElementById('gallery-wrapper');
+        const btn = document.getElementById('view-btn');
+        if(wrapper.classList.contains('hidden')) {
+            wrapper.classList.remove('hidden');
+            btn.innerText = "Hide Photo 🙈";
+            loadPhotos(window.currentUid);
+        } else {
+            wrapper.classList.add('hidden');
+            btn.innerText = "See Photo 📸";
+        }
+    }
+
     function handleAuth() {
         const email = document.getElementById('email').value;
         const pass = document.getElementById('pass').value;
@@ -109,7 +128,6 @@
         document.getElementById('screen-auth').classList.add('hidden');
         document.getElementById('screen-menu').classList.remove('hidden');
         window.currentUid = uid;
-        loadPhotos(uid);
     }
 
     async function uploadImg() {
