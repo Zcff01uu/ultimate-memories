@@ -23,11 +23,9 @@
         .btn { background: var(--main-color); color: white; border: none; padding: 16px; border-radius: 15px; width: 100%; font-weight: bold; cursor: pointer; margin-top: 15px; font-size: 17px; box-shadow: 0 5px 15px rgba(214, 51, 132, 0.3); }
         .hidden { display: none !important; }
         
-        /* Dashboard */
         #gallery { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; max-height: 450px; overflow-y: auto; }
         .img-card { width: 100%; height: 130px; object-fit: cover; border-radius: 12px; border: 2px solid white; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
         
-        /* Hearts Cursor Effect */
         .heart { position: fixed; color: var(--main-color); font-size: 18px; pointer-events: none; animation: fly 1s linear forwards; z-index: 9999; }
         @keyframes fly { 0% { transform: translate(0, 0) scale(1); opacity: 1; } 100% { transform: translate(var(--x), var(--y)) scale(1.5); opacity: 0; } }
     </style>
@@ -70,7 +68,13 @@
     const db = firebase.database();
     let isLogin = true;
 
+    // Animation Fix: Jab mode badle, animation reset ho jaye
     function toggleMode() {
+        const authBox = document.getElementById('screen-auth');
+        authBox.classList.remove('animate__zoomIn'); 
+        void authBox.offsetWidth; // Force reflow
+        authBox.classList.add('animate__zoomIn');
+
         isLogin = !isLogin;
         document.getElementById('auth-title').innerText = isLogin ? "🔑 Login" : "📝 Register";
         document.getElementById('main-btn').innerText = isLogin ? "Enter Vault" : "Create Account";
@@ -110,7 +114,6 @@
         if(!file) return alert("Pick a photo first!");
         const btn = document.getElementById('up-btn');
         btn.innerText = "Saving... ⏳";
-        
         const fd = new FormData(); fd.append("image", file);
         try {
             const res = await fetch("https://api.imgbb.com/1/upload?key=cb53c38c41a5ce7d642d1152d306da9a", {method:"POST", body:fd});
@@ -133,7 +136,6 @@
         });
     }
 
-    // ❤️ Heart Cursor Effect
     document.addEventListener('mousemove', (e) => {
         if(Math.random() > 0.8) {
             const h = document.createElement('div');
