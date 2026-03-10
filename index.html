@@ -19,7 +19,7 @@
         .btn-primary { width: 90%; padding: 14px; background: var(--accent); color: white; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; }
 
         /* UI Elements */
-        header { padding: 15px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; background: white; sticky; top: 0; z-index: 100; }
+        header { padding: 15px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; background: white; position: sticky; top: 0; z-index: 100; }
         .inbox-item { padding: 15px; border-bottom: 1px solid #f9f9f9; display: flex; align-items: center; cursor: pointer; }
         .avatar { width: 45px; height: 45px; background: #ffd1dc; border-radius: 50%; margin-right: 15px; display: flex; align-items: center; justify-content: center; }
         
@@ -50,7 +50,7 @@
 <body>
 
 <div class="container">
-    <div id="screen-auth" class="auth-box">
+    <div id="screen-auth" class="auth-box hidden">
         <div class="logo-text">Memories</div>
         <input type="text" id="email" class="input-field" placeholder="Username">
         <input type="password" id="pass" class="input-field" placeholder="Password">
@@ -90,7 +90,7 @@
                 <div class="stats">
                     <div><b id="friend-count">0</b><br><small>Friends</small></div>
                 </div>
-                <button onclick="location.reload()" style="margin-top:40px; border:none; background:none; color:red;">Logout</button>
+                <button onclick="logout()" style="margin-top:40px; border:none; background:none; color:red; cursor:pointer;">Logout</button>
             </div>
         </div>
 
@@ -101,9 +101,9 @@
             </div>
             <div id="messages"></div>
             <div style="padding: 10px; display: flex; gap: 8px; border-top: 1px solid #eee; background: white;">
-                <button onclick="sendPhoto()" style="border:none; background:none; font-size:20px;">📷</button>
+                <button onclick="sendPhoto()" style="border:none; background:none; font-size:20px; cursor:pointer;">📷</button>
                 <input type="text" id="msg-input" placeholder="Message..." style="flex:1; border: 1px solid #ddd; border-radius: 20px; padding: 10px; outline:none;">
-                <button onclick="send()" style="border:none; background:none; color:var(--accent); font-weight:bold;">Send</button>
+                <button onclick="send()" style="border:none; background:none; color:var(--accent); font-weight:bold; cursor:pointer;">Send</button>
             </div>
         </div>
 
@@ -127,6 +127,23 @@
 
     let myU = "", myId = "", activeRoom = "";
 
+    // --- CHECK LOGIN ON LOAD ---
+    auth.onAuthStateChanged((user) => {
+        if (user) {
+            // Agar user logged in hai, toh uska username fetch karo
+            db.ref('users').orderByValue().equalTo(user.uid).once('value', s => {
+                if(s.exists()) {
+                    myU = Object.keys(s.val())[0];
+                    startApp(user.uid);
+                }
+            });
+        } else {
+            // Agar logged in nahi hai, toh login screen dikhao
+            document.getElementById('screen-auth').classList.remove('hidden');
+            document.getElementById('screen-app').classList.add('hidden');
+        }
+    });
+
     function toggleAuth(isLogin) {
         document.getElementById('auth-btns').classList.toggle('hidden', !isLogin);
         document.getElementById('signup-btns').classList.toggle('hidden', isLogin);
@@ -138,15 +155,16 @@
         if(myU.length < 3 || p.length < 6) return alert("Invalid details!");
 
         try {
+            // Firebase Persistence Set karna (SESSION)
+            await auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
+            
             if(isLogin) {
-                let res = await auth.signInWithEmailAndPassword(myU + "@m.com", p);
-                startApp(res.user.uid);
+                await auth.signInWithEmailAndPassword(myU + "@m.com", p);
             } else {
                 const snap = await db.ref('users/' + myU).once('value');
                 if(snap.exists()) return alert("Username taken!");
                 let res = await auth.createUserWithEmailAndPassword(myU + "@m.com", p);
                 db.ref('users/' + myU).set(res.user.uid);
-                startApp(res.user.uid);
             }
         } catch(e) { alert(e.message); }
     }
@@ -157,7 +175,6 @@
         document.getElementById('screen-app').classList.remove('hidden');
         document.getElementById('prof-name').innerText = myU;
 
-        // Inbox & Friend Count
         db.ref('partners/' + myId).on('value', s => {
             const list = document.getElementById('inbox-list');
             list.innerHTML = "";
@@ -172,19 +189,24 @@
             document.getElementById('friend-count').innerText = count;
         });
 
-        // Notifications (Red Dot)
         db.ref('requests/' + myId).on('value', s => {
             document.getElementById('dot').style.display = s.exists() ? "block" : "none";
             const rl = document.getElementById('req-list'); rl.innerHTML = "";
             s.forEach(r => {
                 rl.innerHTML += `<div style="display:flex; justify-content:space-between; margin-bottom:10px; background:#fff9fb; padding:10px; border-radius:8px;">
                     <span><b>${r.key}</b></span>
-                    <button onclick="accept('${r.key}','${r.val()}')" style="background:var(--accent); color:white; border:none; border-radius:5px; padding:5px 10px;">Accept</button>
+                    <button onclick="accept('${r.key}','${r.val()}')" style="background:var(--accent); color:white; border:none; border-radius:5px; padding:5px 10px; cursor:pointer;">Accept</button>
                 </div>`;
             });
         });
     }
 
+    function logout() {
+        auth.signOut();
+        location.reload();
+    }
+
+    // --- Search, Accept, Chat functions (Same as before) ---
     function findUser() {
         let q = document.getElementById('search-user').value.toLowerCase().trim();
         db.ref('users/' + q).once('value', s => {
@@ -192,7 +214,7 @@
                 document.getElementById('search-res').innerHTML = `
                 <div style="display:flex; justify-content:space-between; align-items:center; padding:15px; border:1px solid #ffc1e3; border-radius:10px;">
                     <b>${q}</b>
-                    <button onclick="sendReq('${q}','${s.val()}')" style="background:var(--accent); color:white; border:none; padding:8px 15px; border-radius:5px;">Send Request</button>
+                    <button onclick="sendReq('${q}','${s.val()}')" style="background:var(--accent); color:white; border:none; padding:8px 15px; border-radius:5px; cursor:pointer;">Send Request</button>
                 </div>`;
             } else alert("Not found!");
         });
@@ -237,7 +259,7 @@
     }
 
     function sendPhoto() {
-        let url = prompt("Enter Image URL (Direct Link):");
+        let url = prompt("Enter Image URL:");
         if(url && activeRoom) {
             db.ref('chats/' + activeRoom).push({ u: myU, t: url, type: 'img' });
         }
