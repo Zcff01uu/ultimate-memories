@@ -4,42 +4,62 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ultimate Memories 💖</title>
+    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+    
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     
     <style>
         :root { --main-color: #d63384; --bg-color: #fff5f8; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg-color); margin: 0; padding: 10px; display: flex; align-items: center; justify-content: center; min-height: 100vh; }
-        .box { width: 95%; max-width: 380px; background: white; padding: 30px; border-radius: 25px; box-shadow: 0 10px 40px rgba(0,0,0,0.1); text-align: center; }
-        h1 { color: var(--main-color); margin-bottom: 20px; }
-        input { width: 100%; padding: 14px; margin: 10px 0; border: 1.5px solid #fbcfe8; border-radius: 12px; box-sizing: border-box; font-size: 16px; outline: none; }
-        .btn { background: var(--main-color); color: white; border: none; padding: 15px; border-radius: 12px; width: 100%; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg-color); margin: 0; padding: 20px; display: flex; align-items: center; justify-content: center; min-height: 100vh; overflow-x: hidden; }
+        .box { width: 90%; max-width: 380px; background: white; padding: 30px; border-radius: 25px; box-shadow: 0 10px 40px rgba(214, 51, 132, 0.1); border: 1px solid #ffdae9; text-align: center; position: relative; }
+        h1 { color: var(--main-color); margin-bottom: 20px; font-size: 24px; }
+        .input-group { position: relative; width: 100%; margin: 10px 0; }
+        input { width: 100%; padding: 14px; border: 1px solid #fbcfe8; border-radius: 12px; outline: none; box-sizing: border-box; background: #fff9fb; font-size: 16px; transition: 0.3s; }
+        input:focus { border-color: var(--main-color); }
+        .toggle-pass { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #aaa; font-size: 18px; z-index: 5; }
+        .btn { background: var(--main-color); color: white; border: none; padding: 15px; border-radius: 12px; width: 100%; font-weight: bold; cursor: pointer; margin-top: 10px; font-size: 16px; box-shadow: 0 5px 15px rgba(214, 51, 132, 0.2); }
+        .btn:active { transform: scale(0.98); }
         .hidden { display: none !important; }
-        #gallery { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 20px; }
-        .img-card { width: 100%; height: 140px; border-radius: 10px; object-fit: cover; }
+        
+        /* Dashboard Styles */
+        #gallery { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; max-height: 400px; overflow-y: auto; }
+        .img-card { width: 100%; height: 120px; object-fit: cover; border-radius: 10px; }
+        
+        /* Heart Animation */
+        .heart-particle { position: fixed; pointer-events: none; color: var(--main-color); font-size: 20px; animation: fly 1s linear forwards; z-index: 999; }
+        @keyframes fly { 0% { transform: translateY(0); opacity: 1; } 100% { transform: translateY(-100px); opacity: 0; } }
     </style>
 </head>
 <body>
 
-    <div id="screen-auth" class="box animate__animated animate__fadeIn">
+    <div id="screen-auth" class="box animate__animated animate__fadeInDown">
         <h1 id="auth-title">🔑 Login</h1>
-        <input type="email" id="email" placeholder="Email (Example: ourlove@gmail.com)">
-        <input type="password" id="pass" placeholder="Secret Password">
+        <div class="input-group">
+            <input type="email" id="email" placeholder="Email (Couples use shared email)">
+        </div>
+        <div class="input-group">
+            <input type="password" id="pass" placeholder="Secret Password">
+            <span class="toggle-pass" id="eye-icon" onclick="togglePass()">👁️</span>
+        </div>
         <button class="btn" id="main-btn" onclick="handleAuth()">Login</button>
-        <p id="toggle-text" onclick="toggleMode()" style="cursor:pointer; color:var(--main-color); margin-top:15px; font-size:14px;">New User? Create Account</p>
+        <p id="toggle-text" onclick="toggleMode()" style="cursor:pointer; color:var(--main-color); margin-top:15px; font-size:14px; text-decoration:underline;">New User? Create Account</p>
     </div>
 
-    <div id="screen-dashboard" class="box hidden animate__animated animate__zoomIn" style="max-width: 500px;">
-        <h1>Our Memories 💖</h1>
-        <input type="file" id="filePicker" accept="image/*">
-        <button class="btn" onclick="uploadImg()" id="up-btn">Upload Photo ✨</button>
-        <div id="gallery"></div>
+    <div id="screen-menu" class="box hidden animate__animated animate__zoomIn" style="max-width: 500px;">
+        <h1>Dashboard 💖</h1>
+        <div id="gallery-container">
+            <input type="file" id="filePicker" style="font-size: 12px;">
+            <button class="btn" onclick="uploadImg()">Save to Cloud ✨</button>
+            <div id="gallery"></div>
+        </div>
         <button onclick="location.reload()" style="background:none; border:none; color:#aaa; margin-top:20px; cursor:pointer;">Logout</button>
     </div>
 
 <script>
+    // 1. Firebase Config
     const firebaseConfig = {
         apiKey: "AIzaSyA7fMm1LjMOz4BefGk60cmMuSoFzBvJapg",
         databaseURL: "https://ultimatememories-64a97-default-rtdb.firebaseio.com",
@@ -52,31 +72,43 @@
     const db = firebase.database();
     let isLogin = true;
 
+    // 2. UI Functions
     function toggleMode() {
         isLogin = !isLogin;
         document.getElementById('auth-title').innerText = isLogin ? "🔑 Login" : "📝 Register";
         document.getElementById('main-btn').innerText = isLogin ? "Login" : "Register";
-        document.getElementById('toggle-text').innerText = isLogin ? "New User? Create Account" : "Already have account? Login";
+        document.getElementById('toggle-text').innerText = isLogin ? "New User? Create Account" : "Back to Login";
     }
 
+    function togglePass() {
+        const p = document.getElementById('pass');
+        const e = document.getElementById('eye-icon');
+        if(p.type === "password"){ p.type = "text"; e.innerText = "🕵️"; } 
+        else { p.type = "password"; e.innerText = "👁️"; }
+    }
+
+    // 3. Auth Logic
     function handleAuth() {
         const email = document.getElementById('email').value;
         const pass = document.getElementById('pass').value;
+        
+        if(!email || !pass) return alert("Please fill both!");
 
         if(isLogin) {
             auth.signInWithEmailAndPassword(email, pass)
                 .then(user => showDashboard(user.user.uid))
-                .catch(err => alert(err.message));
+                .catch(err => alert("Error: " + err.message));
         } else {
             auth.createUserWithEmailAndPassword(email, pass)
                 .then(user => showDashboard(user.user.uid))
-                .catch(err => alert(err.message));
+                .catch(err => alert("Error: " + err.message));
         }
     }
 
+    // 4. Dashboard Logic
     function showDashboard(uid) {
         document.getElementById('screen-auth').classList.add('hidden');
-        document.getElementById('screen-dashboard').classList.remove('hidden');
+        document.getElementById('screen-menu').classList.remove('hidden');
         loadPhotos(uid);
         window.currentUid = uid;
     }
@@ -84,21 +116,20 @@
     async function uploadImg() {
         const file = document.getElementById('filePicker').files[0];
         if(!file) return alert("Select photo!");
-        const btn = document.getElementById('up-btn');
-        btn.innerText = "Uploading...";
         
         const fd = new FormData(); fd.append("image", file);
+        // ImgBB Upload
         const res = await fetch("https://api.imgbb.com/1/upload?key=cb53c38c41a5ce7d642d1152d306da9a", {method:"POST", body:fd});
         const data = await res.json();
         
-        db.ref('memories/' + window.currentUid).push(data.data.url);
-        btn.innerText = "Upload Photo ✨";
-        alert("Saved! ✅");
+        // Save to Firebase Database
+        db.ref('pics/' + window.currentUid).push(data.data.url);
+        alert("Memory Saved! ❤️");
     }
 
     function loadPhotos(uid) {
         const gal = document.getElementById('gallery');
-        db.ref('memories/' + uid).on('value', snap => {
+        db.ref('pics/' + uid).on('value', snap => {
             gal.innerHTML = "";
             snap.forEach(child => {
                 const img = document.createElement('img');
@@ -106,6 +137,14 @@
                 gal.prepend(img);
             });
         });
+    }
+
+    // 5. Heart Cursor Effect
+    document.addEventListener('mousemove', (e) => { if(Math.random() > 0.9) createHeart(e.clientX, e.clientY); });
+    function createHeart(x, y) {
+        const h = document.createElement('div'); h.innerHTML = "❤️"; h.className = 'heart-particle';
+        h.style.left = x + 'px'; h.style.top = y + 'px'; document.body.appendChild(h);
+        setTimeout(() => h.remove(), 1000);
     }
 </script>
 </body>
