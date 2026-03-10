@@ -13,53 +13,51 @@
     
     <style>
         :root { --main-color: #d63384; --bg-color: #fff5f8; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg-color); margin: 0; padding: 20px; display: flex; align-items: center; justify-content: center; min-height: 100vh; overflow-x: hidden; }
-        .box { width: 90%; max-width: 380px; background: white; padding: 30px; border-radius: 25px; box-shadow: 0 10px 40px rgba(214, 51, 132, 0.1); border: 1px solid #ffdae9; text-align: center; position: relative; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg-color); margin: 0; padding: 20px; display: flex; align-items: center; justify-content: center; min-height: 100vh; overflow: hidden; cursor: crosshair; }
+        .box { width: 90%; max-width: 380px; background: white; padding: 30px; border-radius: 25px; box-shadow: 0 10px 40px rgba(214, 51, 132, 0.15); border: 1px solid #ffdae9; text-align: center; position: relative; z-index: 10; }
         h1 { color: var(--main-color); margin-bottom: 20px; font-size: 24px; }
-        .input-group { position: relative; width: 100%; margin: 10px 0; }
-        input { width: 100%; padding: 14px; border: 1px solid #fbcfe8; border-radius: 12px; outline: none; box-sizing: border-box; background: #fff9fb; font-size: 16px; transition: 0.3s; }
+        .input-group { position: relative; width: 100%; margin: 12px 0; }
+        input { width: 100%; padding: 15px; border: 1.5px solid #fbcfe8; border-radius: 12px; outline: none; box-sizing: border-box; background: #fff9fb; font-size: 16px; transition: 0.3s; }
         input:focus { border-color: var(--main-color); }
-        .toggle-pass { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #aaa; font-size: 18px; z-index: 5; }
-        .btn { background: var(--main-color); color: white; border: none; padding: 15px; border-radius: 12px; width: 100%; font-weight: bold; cursor: pointer; margin-top: 10px; font-size: 16px; box-shadow: 0 5px 15px rgba(214, 51, 132, 0.2); }
-        .btn:active { transform: scale(0.98); }
+        .toggle-pass { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); cursor: pointer; font-size: 20px; z-index: 15; }
+        .btn { background: var(--main-color); color: white; border: none; padding: 16px; border-radius: 15px; width: 100%; font-weight: bold; cursor: pointer; margin-top: 15px; font-size: 17px; box-shadow: 0 5px 15px rgba(214, 51, 132, 0.3); }
         .hidden { display: none !important; }
         
-        /* Dashboard Styles */
-        #gallery { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; max-height: 400px; overflow-y: auto; }
-        .img-card { width: 100%; height: 120px; object-fit: cover; border-radius: 10px; }
+        /* Dashboard */
+        #gallery { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; max-height: 450px; overflow-y: auto; }
+        .img-card { width: 100%; height: 130px; object-fit: cover; border-radius: 12px; border: 2px solid white; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
         
-        /* Heart Animation */
-        .heart-particle { position: fixed; pointer-events: none; color: var(--main-color); font-size: 20px; animation: fly 1s linear forwards; z-index: 999; }
-        @keyframes fly { 0% { transform: translateY(0); opacity: 1; } 100% { transform: translateY(-100px); opacity: 0; } }
+        /* Hearts Cursor Effect */
+        .heart { position: fixed; color: var(--main-color); font-size: 18px; pointer-events: none; animation: fly 1s linear forwards; z-index: 9999; }
+        @keyframes fly { 0% { transform: translate(0, 0) scale(1); opacity: 1; } 100% { transform: translate(var(--x), var(--y)) scale(1.5); opacity: 0; } }
     </style>
 </head>
 <body>
 
-    <div id="screen-auth" class="box animate__animated animate__fadeInDown">
+    <div id="screen-auth" class="box animate__animated animate__zoomIn">
         <h1 id="auth-title">🔑 Login</h1>
         <div class="input-group">
-            <input type="email" id="email" placeholder="Email (Couples use shared email)">
+            <input type="email" id="email" placeholder="Email Address">
         </div>
         <div class="input-group">
             <input type="password" id="pass" placeholder="Secret Password">
-            <span class="toggle-pass" id="eye-icon" onclick="togglePass()">👁️</span>
+            <span class="toggle-pass" onclick="togglePass()">👁️</span>
         </div>
-        <button class="btn" id="main-btn" onclick="handleAuth()">Login</button>
-        <p id="toggle-text" onclick="toggleMode()" style="cursor:pointer; color:var(--main-color); margin-top:15px; font-size:14px; text-decoration:underline;">New User? Create Account</p>
+        <button class="btn" id="main-btn" onclick="handleAuth()">Enter Vault</button>
+        <p id="toggle-text" onclick="toggleMode()" style="cursor:pointer; color:var(--main-color); margin-top:18px; font-size:14px; font-weight: 500;">New User? Create Account</p>
     </div>
 
-    <div id="screen-menu" class="box hidden animate__animated animate__zoomIn" style="max-width: 500px;">
-        <h1>Dashboard 💖</h1>
-        <div id="gallery-container">
-            <input type="file" id="filePicker" style="font-size: 12px;">
-            <button class="btn" onclick="uploadImg()">Save to Cloud ✨</button>
-            <div id="gallery"></div>
+    <div id="screen-menu" class="box hidden animate__animated animate__fadeInUp" style="max-width: 500px;">
+        <h1>Our Memories 💖</h1>
+        <div style="background: #fff0f5; padding: 15px; border-radius: 15px; border: 1px dashed var(--main-color);">
+            <input type="file" id="filePicker" style="font-size: 12px; margin-bottom: 10px;">
+            <button class="btn" onclick="uploadImg()" id="up-btn">Upload to Cloud ✨</button>
         </div>
-        <button onclick="location.reload()" style="background:none; border:none; color:#aaa; margin-top:20px; cursor:pointer;">Logout</button>
+        <div id="gallery"></div>
+        <button onclick="location.reload()" style="background:none; border:none; color:#aaa; margin-top:25px; cursor:pointer; font-size: 12px;">Logout</button>
     </div>
 
 <script>
-    // 1. Firebase Config
     const firebaseConfig = {
         apiKey: "AIzaSyA7fMm1LjMOz4BefGk60cmMuSoFzBvJapg",
         databaseURL: "https://ultimatememories-64a97-default-rtdb.firebaseio.com",
@@ -72,59 +70,55 @@
     const db = firebase.database();
     let isLogin = true;
 
-    // 2. UI Functions
     function toggleMode() {
         isLogin = !isLogin;
         document.getElementById('auth-title').innerText = isLogin ? "🔑 Login" : "📝 Register";
-        document.getElementById('main-btn').innerText = isLogin ? "Login" : "Register";
+        document.getElementById('main-btn').innerText = isLogin ? "Enter Vault" : "Create Account";
         document.getElementById('toggle-text').innerText = isLogin ? "New User? Create Account" : "Back to Login";
     }
 
     function togglePass() {
         const p = document.getElementById('pass');
-        const e = document.getElementById('eye-icon');
-        if(p.type === "password"){ p.type = "text"; e.innerText = "🕵️"; } 
-        else { p.type = "password"; e.innerText = "👁️"; }
+        p.type = p.type === "password" ? "text" : "password";
     }
 
-    // 3. Auth Logic
     function handleAuth() {
         const email = document.getElementById('email').value;
         const pass = document.getElementById('pass').value;
-        
-        if(!email || !pass) return alert("Please fill both!");
+        if(!email || !pass) return alert("Please enter both!");
 
         if(isLogin) {
             auth.signInWithEmailAndPassword(email, pass)
                 .then(user => showDashboard(user.user.uid))
-                .catch(err => alert("Error: " + err.message));
+                .catch(err => alert("❌ Login Failed: " + err.message));
         } else {
             auth.createUserWithEmailAndPassword(email, pass)
                 .then(user => showDashboard(user.user.uid))
-                .catch(err => alert("Error: " + err.message));
+                .catch(err => alert("❌ Registration Failed: " + err.message));
         }
     }
 
-    // 4. Dashboard Logic
     function showDashboard(uid) {
         document.getElementById('screen-auth').classList.add('hidden');
         document.getElementById('screen-menu').classList.remove('hidden');
-        loadPhotos(uid);
         window.currentUid = uid;
+        loadPhotos(uid);
     }
 
     async function uploadImg() {
         const file = document.getElementById('filePicker').files[0];
-        if(!file) return alert("Select photo!");
+        if(!file) return alert("Pick a photo first!");
+        const btn = document.getElementById('up-btn');
+        btn.innerText = "Saving... ⏳";
         
         const fd = new FormData(); fd.append("image", file);
-        // ImgBB Upload
-        const res = await fetch("https://api.imgbb.com/1/upload?key=cb53c38c41a5ce7d642d1152d306da9a", {method:"POST", body:fd});
-        const data = await res.json();
-        
-        // Save to Firebase Database
-        db.ref('pics/' + window.currentUid).push(data.data.url);
-        alert("Memory Saved! ❤️");
+        try {
+            const res = await fetch("https://api.imgbb.com/1/upload?key=cb53c38c41a5ce7d642d1152d306da9a", {method:"POST", body:fd});
+            const data = await res.json();
+            db.ref('pics/' + window.currentUid).push(data.data.url);
+            alert("Memory Saved! ❤️");
+        } catch(e) { alert("Upload error!"); }
+        btn.innerText = "Upload to Cloud ✨";
     }
 
     function loadPhotos(uid) {
@@ -139,13 +133,20 @@
         });
     }
 
-    // 5. Heart Cursor Effect
-    document.addEventListener('mousemove', (e) => { if(Math.random() > 0.9) createHeart(e.clientX, e.clientY); });
-    function createHeart(x, y) {
-        const h = document.createElement('div'); h.innerHTML = "❤️"; h.className = 'heart-particle';
-        h.style.left = x + 'px'; h.style.top = y + 'px'; document.body.appendChild(h);
-        setTimeout(() => h.remove(), 1000);
-    }
+    // ❤️ Heart Cursor Effect
+    document.addEventListener('mousemove', (e) => {
+        if(Math.random() > 0.8) {
+            const h = document.createElement('div');
+            h.className = 'heart';
+            h.innerHTML = "❤️";
+            h.style.left = e.clientX + 'px';
+            h.style.top = e.clientY + 'px';
+            h.style.setProperty('--x', (Math.random() * 100 - 50) + 'px');
+            h.style.setProperty('--y', (Math.random() * -100 - 50) + 'px');
+            document.body.appendChild(h);
+            setTimeout(() => h.remove(), 1000);
+        }
+    });
 </script>
 </body>
 </html>
