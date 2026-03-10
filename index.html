@@ -23,7 +23,8 @@
         .hidden { display: none !important; }
 
         .item { padding: 15px; border-bottom: 1px solid #f9f9f9; display: flex; align-items: center; position: relative; cursor: pointer; }
-        .avatar { width: 45px; height: 45px; background: #ffd1dc; border-radius: 50%; margin-right: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+        .avatar { width: 45px; height: 45px; background: #ffd1dc; border-radius: 50%; margin-right: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; overflow: hidden; }
+        .avatar img { width: 100%; height: 100%; object-fit: cover; }
         
         .dot { width: 10px; height: 10px; background: #ff3b7b; border-radius: 50%; position: absolute; right: 25px; border: 2px solid white; display: none; }
         .has-new .dot { display: block; }
@@ -63,11 +64,7 @@
             </div>
         </header>
 
-        <div id="tab-home" class="view">
-            <h4 style="margin:15px;">Messages</h4>
-            <div id="inbox"></div>
-        </div>
-
+        <div id="tab-home" class="view"><h4 style="margin:15px;">Messages</h4><div id="inbox"></div></div>
         <div id="tab-search" class="view hidden">
             <div style="padding:15px; display:flex; gap:5px;">
                 <input type="text" id="find-u" class="inp" style="margin:0; flex:1;" placeholder="Search...">
@@ -75,15 +72,13 @@
             </div>
             <div id="search-results"></div>
         </div>
-
-        <div id="tab-notif" class="view hidden">
-            <h4 style="margin:15px;">Requests</h4>
-            <div id="req-list"></div>
-        </div>
+        <div id="tab-notif" class="view hidden"><h4 style="margin:15px;">Requests</h4><div id="req-list"></div></div>
 
         <div id="tab-profile" class="view hidden" style="text-align:center; padding-top:40px;">
-            <div class="avatar" style="width:70px; height:70px; margin:0 auto;">👤</div>
-            <h2 id="my-name">User</h2>
+            <div class="avatar" id="profile-pic-container" style="width:100px; height:100px; margin:0 auto; border: 2px solid var(--accent);">👤</div>
+            <input type="file" id="pic-input" hidden accept="image/*" onchange="uploadPic(this)">
+            <button class="btn" style="width:150px; margin-top:10px; background:#fff; color:var(--accent); border:1px solid var(--accent);" onclick="document.getElementById('pic-input').click()">Add Pic</button>
+            <h2 id="my-name" style="margin-top:20px;">User</h2>
             <button class="btn" style="width:120px; background:#eee; color:red;" onclick="logout()">Logout</button>
         </div>
 
@@ -124,7 +119,7 @@
     const auth = firebase.auth(), db = firebase.database();
 
     let myU = "", myId = "", activeRid = "", selectedU = "", holdTimer;
-    let isLoggingOut = false; // Flag to stop auto-login after logout
+    let isLoggingOut = false;
 
     auth.onAuthStateChanged(user => {
         if(user && !isLoggingOut) {
@@ -134,6 +129,7 @@
                     document.getElementById('my-name').innerText = myU;
                     document.getElementById('auth-view').classList.add('hidden');
                     document.getElementById('app-view').classList.remove('hidden');
+                    loadMyPic();
                     initApp();
                 }
             });
@@ -142,6 +138,23 @@
             document.getElementById('app-view').classList.add('hidden');
         }
     });
+
+    function loadMyPic() {
+        db.ref('pics/' + myId).on('value', s => {
+            if(s.exists()) document.getElementById('profile-pic-container').innerHTML = `<img src="${s.val()}">`;
+        });
+    }
+
+    function uploadPic(input) {
+        const file = input.files[0];
+        if(!file) return;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const base64 = e.target.result;
+            db.ref('pics/' + myId).set(base64);
+        };
+        reader.readAsDataURL(file);
+    }
 
     async function handleAuth() {
         isLoggingOut = false;
@@ -156,10 +169,7 @@
         }
     }
 
-    function logout() {
-        isLoggingOut = true;
-        auth.signOut();
-    }
+    function logout() { isLoggingOut = true; auth.signOut(); }
 
     function initApp() {
         db.ref('partners/' + myId).on('value', s => {
@@ -168,16 +178,19 @@
                 const name = p.key, rid = p.val().sId;
                 const div = document.createElement('div');
                 div.className = 'item'; div.id = 'chat-'+name;
-                div.innerHTML = `<div class="avatar">👤</div><div><b>${name}</b></div><div class="dot"></div>`;
-                div.addEventListener('touchstart', () => { holdTimer = setTimeout(() => openMenu(name), 800); });
+                div.innerHTML = `<div class="avatar" id="av-${name}">👤</div><div><b>${name}</b></div><div class="dot"></div>`;
+                
+                // Load partner pic
+                db.ref('users/'+name).once('value', us => {
+                    db.ref('pics/'+us.val()).once('value', ps => {
+                        if(ps.exists()) document.getElementById('av-'+name).innerHTML = `<img src="${ps.val()}">`;
+                    });
+                });
+
+                div.addEventListener('touchstart', () => { holdTimer = setTimeout(() => openMenu(name, rid), 800); });
                 div.addEventListener('touchend', () => { clearTimeout(holdTimer); });
                 div.onclick = () => openChat(name, rid);
                 container.appendChild(div);
-                db.ref('chats/'+rid).limitToLast(1).on('child_added', snap => {
-                    if(snap.val().u !== myU && activeRid !== rid) {
-                        document.getElementById('chat-'+name).classList.add('has-new');
-                    }
-                });
             });
         });
 
@@ -190,6 +203,21 @@
         });
     }
 
+    function openMenu(name, rid) { 
+        selectedU = name; activeRid = rid; 
+        document.getElementById('hold-menu').classList.add('show'); 
+        document.getElementById('overlay').style.display = 'block'; 
+    }
+    
+    function closeMenu() { document.getElementById('hold-menu').classList.remove('show'); document.getElementById('overlay').style.display = 'none'; }
+    
+    function confirmDelete() {
+        // Full Delete: Clear partner entry AND chat history
+        db.ref(`partners/${myId}/${selectedU}`).remove();
+        db.ref(`chats/${activeRid}`).remove();
+        closeMenu();
+    }
+
     function openChat(name, rid) {
         activeRid = rid;
         document.getElementById('chat-'+name).classList.remove('has-new');
@@ -197,9 +225,7 @@
         document.getElementById('chat-view').style.display = 'flex';
         db.ref('chats/'+rid).on('value', s => {
             const mBox = document.getElementById('msg-list'); mBox.innerHTML = "";
-            s.forEach(m => {
-                mBox.innerHTML += `<div class="bubble ${m.val().u === myU ? 'sent' : 'recv'}">${m.val().t}</div>`;
-            });
+            s.forEach(m => mBox.innerHTML += `<div class="bubble ${m.val().u === myU ? 'sent' : 'recv'}">${m.val().t}</div>`);
             mBox.scrollTop = mBox.scrollHeight;
         });
     }
@@ -230,9 +256,6 @@
     }
 
     function sendReq(n, id) { db.ref('requests/'+id+'/'+myU).set(myId); alert("Sent!"); }
-    function openMenu(name) { selectedU = name; document.getElementById('hold-menu').classList.add('show'); document.getElementById('overlay').style.display = 'block'; }
-    function closeMenu() { document.getElementById('hold-menu').classList.remove('show'); document.getElementById('overlay').style.display = 'none'; }
-    function confirmDelete() { db.ref(`partners/${myId}/${selectedU}`).remove(); closeMenu(); }
     function closeChat() { activeRid = ""; document.getElementById('chat-view').style.display = 'none'; }
     function tab(t) {
         document.querySelectorAll('.view').forEach(v => v.classList.add('hidden'));
