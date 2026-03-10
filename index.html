@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ultimate Memories 💖</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
-    
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
@@ -13,46 +12,64 @@
     <style>
         :root { --main-color: #d63384; --bg-color: #fff5f8; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg-color); margin: 0; padding: 20px; display: flex; align-items: center; justify-content: center; min-height: 100vh; overflow-x: hidden; }
+        
         .box { width: 95%; max-width: 400px; background: white; padding: 30px; border-radius: 25px; box-shadow: 0 10px 40px rgba(214,51,132,0.15); border: 1px solid #ffdae9; text-align: center; position: relative; }
         h1 { color: var(--main-color); margin-bottom: 20px; font-size: 24px; }
+        
         .input-group { position: relative; width: 100%; margin: 12px 0; }
         input { width: 100%; padding: 15px; border: 1.5px solid #fbcfe8; border-radius: 12px; outline: none; box-sizing: border-box; background: #fff9fb; font-size: 16px; }
+        
         .toggle-pass { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); cursor: pointer; font-size: 18px; color: #888; z-index: 100; }
+        
         .btn { background: var(--main-color); color: white; border: none; padding: 16px; border-radius: 15px; width: 100%; font-weight: bold; cursor: pointer; margin-top: 10px; font-size: 16px; transition: 0.3s; }
+        .btn:active { transform: scale(0.95); }
+        
         .hidden { display: none !important; }
+
         #gallery { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; max-height: 400px; overflow-y: auto; padding: 10px; margin-top: 15px; }
         .img-container { overflow: hidden; border-radius: 15px; height: 130px; border: 3px solid white; box-shadow: 0 5px 15px rgba(0,0,0,0.1); cursor: pointer; }
         .img-card { width: 100%; height: 100%; object-fit: cover; }
+
         #modal { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index: 10000; display:none; flex-direction: column; align-items:center; justify-content:center; }
         #modal img { max-width: 90%; max-height: 70%; border-radius: 15px; border: 2px solid white; }
+        .modal-btns { margin-top: 25px; display: flex; gap: 20px; align-items: center; }
+        .del-btn { background: #ff4757; color: white; border: none; padding: 12px 25px; border-radius: 10px; cursor: pointer; font-weight: bold; }
+        .close-txt { color: white; cursor: pointer; text-decoration: underline; }
+
+        .heart { position: fixed; color: var(--main-color); font-size: 18px; pointer-events: none; animation: fly 1s linear forwards; z-index: 9999; }
+        @keyframes fly { 0% { transform: translate(0,0); opacity:1; } 100% { transform: translate(var(--x), var(--y)); opacity:0; } }
     </style>
 </head>
 <body>
 
     <div id="modal">
         <img id="zoomImg" src="">
-        <div style="margin-top: 25px; display: flex; gap: 20px; align-items: center;">
-            <button onclick="deletePhoto()" style="background: #ff4757; color: white; border: none; padding: 12px 25px; border-radius: 10px; cursor: pointer; font-weight: bold;">Delete 🗑️</button>
-            <p style="color: white; cursor: pointer; text-decoration: underline;" onclick="closeZoom()">Close ✖</p>
+        <div class="modal-btns">
+            <button class="del-btn" id="deleteBtnAction">Delete Memory 🗑️</button>
+            <p class="close-txt" onclick="closeZoom()">Close ✖</p>
         </div>
     </div>
 
     <div id="screen-auth" class="box animate__animated animate__zoomIn">
         <h1 id="auth-title">🔑 Login</h1>
-        <input type="email" id="email" placeholder="Enter Email" style="margin-bottom:10px;">
+        <div class="input-group">
+            <input type="text" id="username" placeholder="Enter Username">
+        </div>
         <div class="input-group">
             <input type="password" id="pass" placeholder="Enter Password">
             <span class="toggle-pass" onclick="togglePass()">👁️</span>
         </div>
         <button class="btn" onclick="handleAuth()">Access Vault</button>
-        <p onclick="toggleMode()" id="toggle-text" style="cursor:pointer; color:var(--main-color); margin-top:20px; font-size:14px;">New User? Create Account</p>
-        <span id="forgot-password" class="hidden" style="color:var(--main-color); font-size:12px; cursor:pointer;" onclick="resetPassword()">Forgot Password?</span>
+        
+        <p onclick="toggleMode()" id="toggle-text" style="cursor:pointer; color:var(--main-color); margin-top:20px; font-size:14px; font-weight:500;">New User? Create Account</p>
     </div>
 
     <div id="screen-upload" class="box hidden animate__animated animate__fadeIn">
         <h1>Save Memory 💖</h1>
-        <input type="file" id="filePicker" style="margin-bottom: 10px; width:100%;">
-        <button class="btn" onclick="uploadImg()" id="up-btn">Upload to Cloud ✨</button>
+        <div style="background:#fff0f5; padding:20px; border-radius:20px; border:2px dashed var(--main-color); margin-bottom: 20px;">
+            <input type="file" id="filePicker" style="font-size: 12px; margin-bottom: 10px; width:100%;">
+            <button class="btn" onclick="uploadImg()" id="up-btn">Upload to Cloud ✨</button>
+        </div>
         <button class="btn" style="background:#6c757d" onclick="goToGallery()">See Photo 📸</button>
         <button onclick="location.reload()" style="background:none; border:none; color:#bbb; margin-top:25px; cursor:pointer;">Logout</button>
     </div>
@@ -64,24 +81,18 @@
     </div>
 
 <script>
-    // UPDATED CONFIG (Sofia, maine wahi config use ki hai jo aapne abhi bheji)
     const firebaseConfig = {
-      apiKey: "AIzaSyA7fMm1LjMOz4BefGk60cmMuSoFzBvJapg",
-      authDomain: "ultimatememories-64a97.firebaseapp.com",
-      databaseURL: "https://ultimatememories-64a97-default-rtdb.firebaseio.com",
-      projectId: "ultimatememories-64a97",
-      storageBucket: "ultimatememories-64a97.firebasestorage.app",
-      messagingSenderId: "513888704426",
-      appId: "1:513888704426:web:b1476d30698d45dd117dd3",
-      measurementId: "G-PQFN4N56FZ"
+        apiKey: "AIzaSyA7fMm1LjMOz4BefGk60cmMuSoFzBvJapg",
+        databaseURL: "https://ultimatememories-64a97-default-rtdb.firebaseio.com",
+        projectId: "ultimatememories-64a97",
+        appId: "1:513888704426:web:b1476d30698d45dd117dd3",
+        authDomain: "ultimatememories-64a97.firebaseapp.com"
     };
-
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const db = firebase.database();
     
     let isLogin = true;
-    let currentPhotoKey = null;
 
     function toggleMode() {
         isLogin = !isLogin;
@@ -95,29 +106,25 @@
     }
 
     function handleAuth() {
-        const email = document.getElementById('email').value;
+        const user = document.getElementById('username').value.trim();
         const pass = document.getElementById('pass').value;
-        
+
+        if(!user || !pass) return alert("Pehle Username aur Password bhariye!");
+
+        // Firebase Auth username support nahi karta, isliye hum "username@app.com" format use karenge peeche se
+        const fakeEmail = user + "@memories.com";
+
         if(isLogin) {
-            auth.signInWithEmailAndPassword(email, pass)
-                .then(u => {
-                    if(u.user.emailVerified) {
-                        showUploadScreen(u.user.uid);
-                    } else {
-                        alert("Pehle email verify karein! Check your Inbox/Spam.");
-                        auth.signOut();
-                    }
-                })
-                .catch(err => alert(err.message));
+            auth.signInWithEmailAndPassword(fakeEmail, pass)
+                .then(u => showUploadScreen(u.user.uid))
+                .catch(err => alert("Ghalat Username ya Password!"));
         } else {
-            auth.createUserWithEmailAndPassword(email, pass)
-                .then(u => {
-                    u.user.sendEmailVerification().then(() => {
-                        alert("Account Created! Verification email bhej diya gaya hai. 📩");
-                        toggleMode();
-                    });
+            auth.createUserWithEmailAndPassword(fakeEmail, pass)
+                .then(() => {
+                    alert("Account Created! Swagat hai " + user + ". 🥳");
+                    toggleMode();
                 })
-                .catch(err => alert(err.message));
+                .catch(err => alert("Error: " + err.message));
         }
     }
 
@@ -140,10 +147,12 @@
 
     async function uploadImg() {
         const file = document.getElementById('filePicker').files[0];
-        if(!file) return alert("Photo select karein!");
+        if(!file) return alert("Select a photo first!");
+        
         const btn = document.getElementById('up-btn');
         btn.innerText = "Uploading... ⏳";
-        
+        btn.disabled = true;
+
         const formData = new FormData();
         formData.append("image", file);
 
@@ -153,11 +162,15 @@
                 body: formData
             });
             const data = await res.json();
-            // Path corrected to 'photos/'
+            // Photos ko database mein save karna
             db.ref('photos/' + window.currentUid).push(data.data.url);
             alert("Memory Saved! ❤️");
-        } catch (e) { alert("Error uploading!"); }
-        btn.innerText = "Upload to Cloud ✨";
+        } catch (e) {
+            alert("Upload failed.");
+        } finally {
+            btn.innerText = "Upload to Cloud ✨";
+            btn.disabled = false;
+        }
     }
 
     function loadGallery() {
@@ -176,23 +189,32 @@
     function openZoom(url, key) {
         document.getElementById('zoomImg').src = url;
         document.getElementById('modal').style.display = "flex";
-        currentPhotoKey = key;
+        
+        document.getElementById('deleteBtnAction').onclick = function() {
+            if(confirm("Delete kar dein? 🥺")) {
+                db.ref('photos/' + window.currentUid + '/' + key).remove();
+                closeZoom();
+            }
+        };
     }
 
-    function deletePhoto() {
-        if(confirm("Delete kar dein?")) {
-            db.ref('photos/' + window.currentUid + '/' + currentPhotoKey).remove();
-            closeZoom();
+    function closeZoom() {
+        document.getElementById('modal').style.display = "none";
+    }
+
+    document.addEventListener('mousemove', (e) => {
+        if(Math.random() > 0.9) {
+            const heart = document.createElement('div');
+            heart.className = 'heart';
+            heart.innerHTML = "❤️";
+            heart.style.left = e.clientX + 'px';
+            heart.style.top = e.clientY + 'px';
+            heart.style.setProperty('--x', (Math.random() * 100 - 50) + 'px');
+            heart.style.setProperty('--y', (Math.random() * -100 - 50) + 'px');
+            document.body.appendChild(heart);
+            setTimeout(() => heart.remove(), 1000);
         }
-    }
-
-    function closeZoom() { document.getElementById('modal').style.display = "none"; }
-
-    function resetPassword() {
-        const email = document.getElementById('email').value;
-        if(!email) return alert("Email likhein!");
-        auth.sendPasswordResetEmail(email).then(() => alert("Reset link sent!"));
-    }
+    });
 </script>
 </body>
 </html>
