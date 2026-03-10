@@ -11,32 +11,19 @@
         :root { --accent: #d63384; --bg: #fff5f8; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; display: flex; justify-content: center; }
         .container { width: 100%; max-width: 450px; background: white; min-height: 100vh; position: relative; box-shadow: 0 0 20px rgba(0,0,0,0.1); }
-        
-        /* Auth Styles */
         .auth-box { padding: 50px 30px; text-align: center; }
         .logo-text { font-family: 'Brush Script MT', cursive; font-size: 48px; color: var(--accent); margin-bottom: 40px; }
         .input-group { position: relative; width: 100%; margin-bottom: 15px; }
         .input-field { width: 90%; padding: 14px; border: 1px solid #ffc1e3; border-radius: 10px; background: #fdf2f7; outline: none; }
         .eye-btn { position: absolute; right: 25px; top: 15px; cursor: pointer; }
-        
         .btn-primary { width: 96%; padding: 14px; background: var(--accent); color: white; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 16px; margin-top: 10px; }
-        .btn-primary:disabled { background: #e0a0bc; cursor: not-allowed; }
-        
         #error-msg { color: #d63384; font-size: 14px; margin: 10px 0; font-weight: bold; min-height: 20px; }
-        .switch-link { margin-top: 20px; display: block; color: var(--accent); cursor: pointer; text-decoration: underline; font-size: 14px; }
-
-        /* App Styles */
-        header { padding: 15px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; background: white; position: sticky; top: 0; z-index: 100; }
-        #chat-screen { position: fixed; top: 0; width: 100%; max-width: 450px; height: 100%; background: white; z-index: 1000; display: none; flex-direction: column; }
-        #messages { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 8px; background: #fffafa; }
-        .msg { padding: 10px 15px; border-radius: 18px; max-width: 70%; font-size: 14px; }
-        .sent { align-self: flex-end; background: var(--accent); color: white; }
-        .received { align-self: flex-start; background: #efefef; }
-        
-        nav { position: fixed; bottom: 0; width: 100%; max-width: 450px; background: white; border-top: 1px solid #eee; display: flex; justify-content: space-around; padding: 12px 0; }
-        .nav-icon { font-size: 22px; cursor: pointer; color: #ccc; position: relative; }
-        .nav-icon.active { color: var(--accent); }
+        .switch-link { margin-top: 20px; display: block; color: var(--accent); cursor: pointer; font-size: 14px; text-decoration: underline; }
         .hidden { display: none !important; }
+        header { padding: 15px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
+        nav { position: fixed; bottom: 0; width: 100%; max-width: 450px; background: white; border-top: 1px solid #eee; display: flex; justify-content: space-around; padding: 12px 0; }
+        .nav-icon { font-size: 22px; cursor: pointer; color: #ccc; }
+        .nav-icon.active { color: var(--accent); }
     </style>
 </head>
 <body>
@@ -44,72 +31,37 @@
 <div class="container">
     <div id="screen-auth" class="auth-box">
         <div class="logo-text">Memories</div>
-        
         <div class="input-group">
             <input type="text" id="email" class="input-field" placeholder="Username">
         </div>
-        
         <div class="input-group">
             <input type="password" id="pass" class="input-field" placeholder="Password">
             <span class="eye-btn" onclick="togglePass()">👁️</span>
         </div>
-
         <div id="error-msg"></div>
-        
         <div id="login-section">
-            <button class="btn-primary" id="btn-login" onclick="login()">Log In</button>
-            <span class="switch-link" onclick="toggleAuth(false)">Don't have an account? Sign Up</span>
+            <button class="btn-primary" onclick="loginUser()">Log In</button>
+            <span class="switch-link" onclick="toggleAuth(false)">New here? Create Account</span>
         </div>
-        
         <div id="signup-section" class="hidden">
-            <button class="btn-primary" id="btn-signup" onclick="signup()">Create Account</button>
-            <span class="switch-link" onclick="toggleAuth(true)">Already have an account? Log In</span>
+            <button class="btn-primary" onclick="signupUser()">Sign Up</button>
+            <span class="switch-link" onclick="toggleAuth(true)">Have account? Log In</span>
         </div>
     </div>
 
     <div id="screen-app" class="hidden">
         <header>
             <div class="logo-text" style="font-size: 24px; margin: 0;">Memories</div>
-            <div style="font-size: 20px; cursor: pointer;" onclick="tab('search')">🔍</div>
+            <button onclick="logout()" style="border:none; background:none; color:red; cursor:pointer;">Logout</button>
         </header>
-
-        <div id="view-home" class="view">
-            <h4 style="margin: 15px;">Messages</h4>
-            <div id="inbox-list"></div>
+        <div id="view-home" style="padding:20px; text-align:center;">
+            <h3>Welcome, <span id="display-name"></span>!</h3>
+            <p>Go to Search (🔍) to find friends.</p>
         </div>
-
-        <div id="view-search" class="view hidden" style="padding: 10px;">
-            <div style="display:flex; gap:5px;">
-                <input type="text" id="search-user" class="input-field" placeholder="Search user..." style="width:75%">
-                <button class="btn-primary" onclick="findUser()" style="width:20%; margin:0; padding:10px;">Go</button>
-            </div>
-            <div id="search-res" style="margin-top: 20px;"></div>
-            <h4>Requests</h4>
-            <div id="req-list"></div>
-        </div>
-
-        <div id="view-profile" class="view hidden" style="text-align:center; padding: 40px 20px;">
-            <div style="width:100px; height:100px; background:#ffd1dc; border-radius:50%; margin: 0 auto; display:flex; align-items:center; justify-content:center; font-size:40px;">👤</div>
-            <h2 id="prof-name">User</h2>
-            <button onclick="logout()" style="margin-top:50px; background:none; border:none; color:red; font-weight:bold; cursor:pointer;">Logout</button>
-        </div>
-
-        <div id="chat-screen">
-            <div style="padding:15px; border-bottom:1px solid #eee; display:flex; align-items:center; gap:15px;">
-                <span onclick="closeChat()" style="cursor:pointer; font-size:24px;">←</span>
-                <span id="chat-name" style="font-weight:bold;">User</span>
-            </div>
-            <div id="messages"></div>
-            <div style="padding: 10px; display: flex; gap: 8px; border-top: 1px solid #eee;">
-                <input type="text" id="msg-input" placeholder="Message..." style="flex:1; border: 1px solid #ddd; border-radius: 20px; padding: 10px;">
-                <button onclick="send()" style="border:none; background:none; color:var(--accent); font-weight:bold;">Send</button>
-            </div>
-        </div>
-
         <nav>
-            <div onclick="tab('home')" id="nav-home" class="nav-icon active">🏠</div>
-            <div onclick="tab('search')" id="nav-search" class="nav-icon">🔍</div>
-            <div onclick="tab('profile')" id="nav-profile" class="nav-icon">👤</div>
+            <div onclick="alert('Home')" class="nav-icon active">🏠</div>
+            <div onclick="alert('Search coming soon')" class="nav-icon">🔍</div>
+            <div onclick="alert('Profile')" class="nav-icon">👤</div>
         </nav>
     </div>
 </div>
@@ -124,23 +76,6 @@
     firebase.initializeApp(config);
     const auth = firebase.auth(), db = firebase.database();
 
-    let myU = "", myId = "", activeRoom = "";
-
-    // Stay Logged In Logic
-    auth.onAuthStateChanged((user) => {
-        if (user) {
-            db.ref('users').orderByValue().equalTo(user.uid).once('value', s => {
-                if(s.exists()) {
-                    myU = Object.keys(s.val())[0];
-                    startApp(user.uid);
-                }
-            });
-        } else {
-            document.getElementById('screen-auth').classList.remove('hidden');
-            document.getElementById('screen-app').classList.add('hidden');
-        }
-    });
-
     function toggleAuth(isLogin) {
         document.getElementById('login-section').classList.toggle('hidden', !isLogin);
         document.getElementById('signup-section').classList.toggle('hidden', isLogin);
@@ -152,120 +87,71 @@
         p.type = p.type === "password" ? "text" : "password";
     }
 
-    // LOGIN FUNCTION
-    async function login() {
+    // LOGIN
+    async function loginUser() {
         const err = document.getElementById('error-msg');
         const u = document.getElementById('email').value.toLowerCase().trim();
         const p = document.getElementById('pass').value;
 
-        if(!u || p.length < 6) return err.innerText = "Check username/password (min 6 chars)";
+        if(!u || p.length < 6) return err.innerText = "Username/Password (min 6) missing!";
         
+        err.style.color = "blue";
         err.innerText = "Logging in...";
+
+        // Timeout to prevent getting stuck
+        const timeout = setTimeout(() => {
+            err.style.color = "red";
+            err.innerText = "Network slow. Please refresh.";
+        }, 15000);
+
         try {
-            await auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
             await auth.signInWithEmailAndPassword(u + "@m.com", p);
+            clearTimeout(timeout);
         } catch(e) {
-            if(e.code === "auth/wrong-password") err.innerText = "Galat Password!";
-            else if(e.code === "auth/user-not-found") err.innerText = "Username nahi mila!";
+            clearTimeout(timeout);
+            err.style.color = "red";
+            if(e.code === "auth/wrong-password") err.innerText = "Wrong Password! Check symbols/caps.";
+            else if(e.code === "auth/user-not-found") err.innerText = "Username doesn't exist. Sign Up first!";
             else err.innerText = e.message;
         }
     }
 
-    // SIGNUP FUNCTION
-    async function signup() {
+    // SIGNUP
+    async function signupUser() {
         const err = document.getElementById('error-msg');
         const u = document.getElementById('email').value.toLowerCase().trim();
         const p = document.getElementById('pass').value;
 
-        if(!u || p.length < 6) return err.innerText = "Username & 6+ char password required";
+        if(!u || p.length < 6) return err.innerText = "6+ chars needed for username & password!";
 
+        err.style.color = "blue";
         err.innerText = "Creating account...";
         try {
-            const snap = await db.ref('users/' + u).once('value');
-            if(snap.exists()) return err.innerText = "Username already taken!";
+            const check = await db.ref('users/' + u).once('value');
+            if(check.exists()) return err.innerText = "Username taken! Try another.";
             
             const res = await auth.createUserWithEmailAndPassword(u + "@m.com", p);
             await db.ref('users/' + u).set(res.user.uid);
         } catch(e) {
+            err.style.color = "red";
             err.innerText = e.message;
         }
     }
 
-    function startApp(uid) {
-        myId = uid;
-        document.getElementById('screen-auth').classList.add('hidden');
-        document.getElementById('screen-app').classList.remove('hidden');
-        document.getElementById('prof-name').innerText = myU;
-
-        db.ref('partners/' + myId).on('value', s => {
-            const list = document.getElementById('inbox-list');
-            list.innerHTML = "";
-            s.forEach(p => {
-                list.innerHTML += `<div class="inbox-item" onclick="openChat('${p.key}', '${p.val().sId}')">
-                    <div class="avatar">👤</div>
-                    <div><b>${p.key}</b><br><small>Tap to chat</small></div>
-                </div>`;
-            });
-        });
-
-        db.ref('requests/' + myId).on('value', s => {
-            const rl = document.getElementById('req-list'); rl.innerHTML = "";
-            s.forEach(r => {
-                rl.innerHTML += `<div style="display:flex; justify-content:space-between; padding:10px; background:#fff9fb; margin-bottom:5px; border-radius:8px;">
-                    <span><b>${r.key}</b></span>
-                    <button onclick="accept('${r.key}','${r.val()}')" style="background:var(--accent); color:white; border:none; padding:5px 10px; border-radius:5px;">Accept</button>
-                </div>`;
-            });
-        });
-    }
-
-    function findUser() {
-        let q = document.getElementById('search-user').value.toLowerCase().trim();
-        db.ref('users/' + q).once('value', s => {
-            if(s.exists() && q !== myU) {
-                document.getElementById('search-res').innerHTML = `<div style="display:flex; justify-content:space-between; align-items:center; padding:15px; border:1px solid #ffc1e3; border-radius:10px;">
-                    <b>${q}</b><button onclick="sendReq('${q}','${s.val()}')" style="background:var(--accent); color:white; border:none; padding:8px 15px; border-radius:5px;">Add</button>
-                </div>`;
-            } else alert("User not found!");
-        });
-    }
-
-    function sendReq(n, id) { db.ref('requests/' + id + '/' + myU).set(myId); alert("Sent!"); }
-    function accept(n, id) {
-        let room = myId < id ? myId + id : id + myId;
-        db.ref('partners/' + myId + '/' + n).set({ sId: room });
-        db.ref('partners/' + id + '/' + myU).set({ sId: room });
-        db.ref('requests/' + myId + '/' + n).remove();
-    }
-    function openChat(name, roomId) {
-        activeRoom = roomId;
-        document.getElementById('chat-name').innerText = name;
-        document.getElementById('chat-screen').style.display = 'flex';
-        db.ref('chats/' + roomId).on('value', s => {
-            const cont = document.getElementById('messages');
-            cont.innerHTML = "";
-            s.forEach(m => {
-                const d = m.val();
-                cont.innerHTML += `<div class="msg ${d.u === myU ? 'sent' : 'received'}">${d.t}</div>`;
-            });
-            cont.scrollTop = cont.scrollHeight;
-        });
-    }
-    function closeChat() { document.getElementById('chat-screen').style.display = 'none'; }
-    function send() {
-        let t = document.getElementById('msg-input').value;
-        if(t && activeRoom) {
-            db.ref('chats/' + activeRoom).push({ u: myU, t: t });
-            document.getElementById('msg-input').value = "";
+    // AUTH STATE
+    auth.onAuthStateChanged(user => {
+        if (user) {
+            const uName = user.email.split('@')[0];
+            document.getElementById('display-name').innerText = uName;
+            document.getElementById('screen-auth').classList.add('hidden');
+            document.getElementById('screen-app').classList.remove('hidden');
+        } else {
+            document.getElementById('screen-auth').classList.remove('hidden');
+            document.getElementById('screen-app').classList.add('hidden');
         }
-    }
-    function tab(name) {
-        document.querySelectorAll('.view').forEach(v => v.classList.add('hidden'));
-        document.querySelectorAll('.nav-icon').forEach(i => i.classList.remove('active'));
-        document.getElementById('view-' + name).classList.remove('hidden');
-        document.getElementById('nav-' + name).classList.add('active');
-    }
-    function logout() { auth.signOut(); location.reload(); }
+    });
+
+    function logout() { auth.signOut(); }
 </script>
 </body>
 </html>
