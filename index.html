@@ -10,30 +10,39 @@
     <style>
         :root { --accent: #d63384; --bg: #fff5f8; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; display: flex; justify-content: center; }
-        .container { width: 100%; max-width: 450px; background: white; min-height: 100vh; position: relative; box-shadow: 0 0 20px rgba(0,0,0,0.1); }
+        .container { width: 100%; max-width: 450px; background: white; min-height: 100vh; position: relative; box-shadow: 0 0 20px rgba(0,0,0,0.1); overflow-x: hidden; }
         
-        /* Professional Login Style */
+        /* Auth */
         .auth-box { padding: 50px 30px; text-align: center; }
         .logo-text { font-family: 'Brush Script MT', cursive; font-size: 48px; color: var(--accent); margin-bottom: 40px; }
         .input-field { width: 90%; padding: 14px; margin-bottom: 15px; border: 1px solid #ffc1e3; border-radius: 10px; background: #fff9fb; outline: none; }
-        .btn-primary { width: 90%; padding: 14px; background: var(--accent); color: white; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 16px; margin-top: 10px; }
-        .switch-link { color: var(--accent); cursor: pointer; font-size: 14px; margin-top: 20px; display: block; text-decoration: none; }
+        .btn-primary { width: 90%; padding: 14px; background: var(--accent); color: white; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; }
 
-        /* Inbox & Chat UI */
-        header { padding: 15px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; background: white; position: sticky; top: 0; z-index: 100; }
+        /* UI Elements */
+        header { padding: 15px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; background: white; sticky; top: 0; z-index: 100; }
         .inbox-item { padding: 15px; border-bottom: 1px solid #f9f9f9; display: flex; align-items: center; cursor: pointer; }
-        .avatar { width: 45px; height: 45px; background: #ffd1dc; border-radius: 50%; margin-right: 15px; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+        .avatar { width: 45px; height: 45px; background: #ffd1dc; border-radius: 50%; margin-right: 15px; display: flex; align-items: center; justify-content: center; }
         
+        /* Notification Dot */
+        .notif-wrapper { position: relative; cursor: pointer; font-size: 22px; }
+        .red-dot { position: absolute; top: -2px; right: -2px; background: red; width: 10px; height: 10px; border-radius: 50%; display: none; border: 2px solid white; }
+
+        /* Chat Overlay */
         #chat-screen { position: fixed; top: 0; width: 100%; max-width: 450px; height: 100%; background: white; z-index: 1000; display: none; flex-direction: column; }
         .chat-header { padding: 15px; border-bottom: 1px solid #eee; display: flex; align-items: center; gap: 15px; font-weight: bold; }
-        .back-btn { cursor: pointer; font-size: 24px; color: var(--accent); padding-right: 10px; }
         #messages { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 8px; background: #fffafa; }
-        .msg { padding: 10px 15px; border-radius: 18px; max-width: 70%; font-size: 14px; word-wrap: break-word; }
-        .sent { align-self: flex-end; background: var(--accent); color: white; border-bottom-right-radius: 2px; }
-        .received { align-self: flex-start; background: #efefef; color: #333; border-bottom-left-radius: 2px; }
+        .msg { padding: 10px 15px; border-radius: 18px; max-width: 70%; font-size: 14px; }
+        .sent { align-self: flex-end; background: var(--accent); color: white; }
+        .received { align-self: flex-start; background: #efefef; color: #333; }
+        .chat-img { max-width: 100%; border-radius: 10px; margin-top: 5px; }
+
+        /* Profile */
+        .profile-card { text-align: center; padding: 40px 20px; }
+        .prof-pic { width: 100px; height: 100px; background: #ffd1dc; border-radius: 50%; margin: 0 auto 15px; display: flex; align-items: center; justify-content: center; font-size: 40px; }
+        .stats { display: flex; justify-content: center; gap: 40px; margin-top: 20px; border-top: 1px solid #eee; padding-top: 20px; }
 
         nav { position: fixed; bottom: 0; width: 100%; max-width: 450px; background: white; border-top: 1px solid #eee; display: flex; justify-content: space-around; padding: 12px 0; }
-        .nav-icon { font-size: 22px; cursor: pointer; color: #ccc; }
+        .nav-icon { font-size: 22px; cursor: pointer; color: #ccc; position: relative; }
         .nav-icon.active { color: var(--accent); }
         .hidden { display: none !important; }
     </style>
@@ -45,22 +54,20 @@
         <div class="logo-text">Memories</div>
         <input type="text" id="email" class="input-field" placeholder="Username">
         <input type="password" id="pass" class="input-field" placeholder="Password">
-        
-        <div id="login-mode">
-            <button class="btn-primary" onclick="login()">Log In</button>
-            <span class="switch-link" onclick="toggleAuth(false)">Don't have an account? Sign Up</span>
+        <div id="auth-btns">
+            <button class="btn-primary" onclick="handleAuth(true)">Log In</button>
+            <p onclick="toggleAuth(false)" style="font-size:12px; color:var(--accent); cursor:pointer; margin-top:15px;">New? Create Account</p>
         </div>
-        
-        <div id="signup-mode" class="hidden">
-            <button class="btn-primary" onclick="signup()">Create Account</button>
-            <span class="switch-link" onclick="toggleAuth(true)">Already have an account? Log In</span>
+        <div id="signup-btns" class="hidden">
+            <button class="btn-primary" onclick="handleAuth(false)">Create Account</button>
+            <p onclick="toggleAuth(true)" style="font-size:12px; color:var(--accent); cursor:pointer; margin-top:15px;">Already have an account? Login</p>
         </div>
     </div>
 
     <div id="screen-app" class="hidden">
         <header>
             <div class="logo-text" style="font-size: 24px; margin: 0;">Memories</div>
-            <div style="cursor: pointer;" onclick="tab('search')">❤️</div>
+            <div class="notif-wrapper" onclick="tab('search')">🔍<div id="dot" class="red-dot"></div></div>
         </header>
 
         <div id="view-home" class="view">
@@ -72,18 +79,30 @@
             <input type="text" id="search-user" class="input-field" placeholder="Search username...">
             <button class="btn-primary" onclick="findUser()">Search</button>
             <div id="search-res" style="margin-top: 20px;"></div>
-            <h4>Friend Requests</h4>
+            <h4>Requests</h4>
             <div id="req-list"></div>
+        </div>
+
+        <div id="view-profile" class="view hidden">
+            <div class="profile-card">
+                <div class="prof-pic">👤</div>
+                <h2 id="prof-name">Username</h2>
+                <div class="stats">
+                    <div><b id="friend-count">0</b><br><small>Friends</small></div>
+                </div>
+                <button onclick="location.reload()" style="margin-top:40px; border:none; background:none; color:red;">Logout</button>
+            </div>
         </div>
 
         <div id="chat-screen">
             <div class="chat-header">
-                <span class="back-btn" onclick="closeChat()">←</span>
+                <span onclick="closeChat()" style="cursor:pointer; font-size:24px;">←</span>
                 <span id="chat-name">User</span>
             </div>
             <div id="messages"></div>
-            <div style="padding: 15px; display: flex; gap: 10px; border-top: 1px solid #eee;">
-                <input type="text" id="msg-input" placeholder="Message..." style="flex:1; border: 1px solid #ddd; border-radius: 20px; padding: 10px;">
+            <div style="padding: 10px; display: flex; gap: 8px; border-top: 1px solid #eee; background: white;">
+                <button onclick="sendPhoto()" style="border:none; background:none; font-size:20px;">📷</button>
+                <input type="text" id="msg-input" placeholder="Message..." style="flex:1; border: 1px solid #ddd; border-radius: 20px; padding: 10px; outline:none;">
                 <button onclick="send()" style="border:none; background:none; color:var(--accent); font-weight:bold;">Send</button>
             </div>
         </div>
@@ -91,6 +110,7 @@
         <nav>
             <div onclick="tab('home')" id="nav-home" class="nav-icon active">🏠</div>
             <div onclick="tab('search')" id="nav-search" class="nav-icon">🔍</div>
+            <div onclick="tab('profile')" id="nav-profile" class="nav-icon">👤</div>
         </nav>
     </div>
 </div>
@@ -108,57 +128,56 @@
     let myU = "", myId = "", activeRoom = "";
 
     function toggleAuth(isLogin) {
-        document.getElementById('login-mode').classList.toggle('hidden', !isLogin);
-        document.getElementById('signup-mode').classList.toggle('hidden', isLogin);
+        document.getElementById('auth-btns').classList.toggle('hidden', !isLogin);
+        document.getElementById('signup-btns').classList.toggle('hidden', isLogin);
     }
 
-    async function login() {
+    async function handleAuth(isLogin) {
         myU = document.getElementById('email').value.toLowerCase().trim();
         let p = document.getElementById('pass').value;
-        auth.signInWithEmailAndPassword(myU + "@m.com", p)
-            .then(res => startApp(res.user.uid))
-            .catch(e => alert("Invalid username or password!"));
-    }
+        if(myU.length < 3 || p.length < 6) return alert("Invalid details!");
 
-    async function signup() {
-        myU = document.getElementById('email').value.toLowerCase().trim();
-        let p = document.getElementById('pass').value;
-        if(myU.length < 3) return alert("Username too short!");
-        
-        const snap = await db.ref('users/' + myU).once('value');
-        if(snap.exists()) return alert("Username already taken!");
-
-        auth.createUserWithEmailAndPassword(myU + "@m.com", p)
-            .then(res => {
+        try {
+            if(isLogin) {
+                let res = await auth.signInWithEmailAndPassword(myU + "@m.com", p);
+                startApp(res.user.uid);
+            } else {
+                const snap = await db.ref('users/' + myU).once('value');
+                if(snap.exists()) return alert("Username taken!");
+                let res = await auth.createUserWithEmailAndPassword(myU + "@m.com", p);
                 db.ref('users/' + myU).set(res.user.uid);
                 startApp(res.user.uid);
-            }).catch(e => alert(e.message));
+            }
+        } catch(e) { alert(e.message); }
     }
 
     function startApp(uid) {
         myId = uid;
         document.getElementById('screen-auth').classList.add('hidden');
         document.getElementById('screen-app').classList.remove('hidden');
+        document.getElementById('prof-name').innerText = myU;
 
-        // Load Inbox
+        // Inbox & Friend Count
         db.ref('partners/' + myId).on('value', s => {
             const list = document.getElementById('inbox-list');
             list.innerHTML = "";
+            let count = 0;
             s.forEach(p => {
-                const data = p.val();
-                list.innerHTML += `
-                <div class="inbox-item" onclick="openChat('${p.key}', '${data.sId}')">
+                count++;
+                list.innerHTML += `<div class="inbox-item" onclick="openChat('${p.key}', '${p.val().sId}')">
                     <div class="avatar">👤</div>
                     <div><b>${p.key}</b><br><small style="color:grey;">Tap to chat</small></div>
                 </div>`;
             });
+            document.getElementById('friend-count').innerText = count;
         });
 
-        // Load Requests
+        // Notifications (Red Dot)
         db.ref('requests/' + myId).on('value', s => {
+            document.getElementById('dot').style.display = s.exists() ? "block" : "none";
             const rl = document.getElementById('req-list'); rl.innerHTML = "";
             s.forEach(r => {
-                rl.innerHTML += `<div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+                rl.innerHTML += `<div style="display:flex; justify-content:space-between; margin-bottom:10px; background:#fff9fb; padding:10px; border-radius:8px;">
                     <span><b>${r.key}</b></span>
                     <button onclick="accept('${r.key}','${r.val()}')" style="background:var(--accent); color:white; border:none; border-radius:5px; padding:5px 10px;">Accept</button>
                 </div>`;
@@ -171,11 +190,11 @@
         db.ref('users/' + q).once('value', s => {
             if(s.exists() && q !== myU) {
                 document.getElementById('search-res').innerHTML = `
-                <div style="display:flex; justify-content:space-between; align-items:center; padding:15px; border:1px solid #eee; border-radius:10px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; padding:15px; border:1px solid #ffc1e3; border-radius:10px;">
                     <b>${q}</b>
-                    <button onclick="sendReq('${q}','${s.val()}')" style="background:var(--accent); color:white; border:none; padding:8px 15px; border-radius:5px;">Add</button>
+                    <button onclick="sendReq('${q}','${s.val()}')" style="background:var(--accent); color:white; border:none; padding:8px 15px; border-radius:5px;">Send Request</button>
                 </div>`;
-            } else alert("User not found!");
+            } else alert("Not found!");
         });
     }
 
@@ -200,7 +219,8 @@
             cont.innerHTML = "";
             s.forEach(m => {
                 const d = m.val();
-                cont.innerHTML += `<div class="msg ${d.u === myU ? 'sent' : 'received'}">${d.t}</div>`;
+                let content = d.type === 'img' ? `<img src="${d.t}" class="chat-img">` : d.t;
+                cont.innerHTML += `<div class="msg ${d.u === myU ? 'sent' : 'received'}">${content}</div>`;
             });
             cont.scrollTop = cont.scrollHeight;
         });
@@ -211,16 +231,23 @@
     function send() {
         let t = document.getElementById('msg-input').value;
         if(t && activeRoom) {
-            db.ref('chats/' + activeRoom).push({ u: myU, t: t });
+            db.ref('chats/' + activeRoom).push({ u: myU, t: t, type: 'text' });
             document.getElementById('msg-input').value = "";
         }
     }
 
+    function sendPhoto() {
+        let url = prompt("Enter Image URL (Direct Link):");
+        if(url && activeRoom) {
+            db.ref('chats/' + activeRoom).push({ u: myU, t: url, type: 'img' });
+        }
+    }
+
     function tab(name) {
-        document.getElementById('view-home').classList.toggle('hidden', name !== 'home');
-        document.getElementById('view-search').classList.toggle('hidden', name !== 'search');
-        document.getElementById('nav-home').classList.toggle('active', name === 'home');
-        document.getElementById('nav-search').classList.toggle('active', name === 'search');
+        document.querySelectorAll('.view').forEach(v => v.classList.add('hidden'));
+        document.querySelectorAll('.nav-icon').forEach(i => i.classList.remove('active'));
+        document.getElementById('view-' + name).classList.remove('hidden');
+        document.getElementById('nav-' + name).classList.add('active');
     }
 </script>
 </body>
