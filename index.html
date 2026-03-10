@@ -13,81 +13,83 @@
         :root { --main-color: #d63384; --bg-color: #fff5f8; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg-color); margin: 0; padding: 0; display: flex; justify-content: center; min-height: 100vh; }
         
-        .box { width: 100%; max-width: 400px; background: white; min-height: 100vh; position: relative; display: flex; flex-direction: column; box-shadow: 0 0 20px rgba(0,0,0,0.1); }
+        .box { width: 100%; max-width: 400px; background: white; min-height: 100vh; position: relative; box-shadow: 0 0 20px rgba(0,0,0,0.1); }
         
-        /* Auth Screen */
-        #screen-auth { padding: 40px 20px; text-align: center; justify-content: center; display: flex; flex-direction: column; height: 100vh; box-sizing: border-box; }
-        input { width: 100%; padding: 15px; border: 1.5px solid #fbcfe8; border-radius: 12px; outline: none; margin: 10px 0; background: #fff9fb; font-size: 16px; box-sizing: border-box; }
-        .toggle-pass { position: absolute; right: 35px; margin-top: 28px; cursor: pointer; color: #888; font-size: 20px; }
+        /* Auth Screen Styling */
+        #screen-auth { padding: 40px 20px; text-align: center; display: flex; flex-direction: column; justify-content: center; height: 100vh; box-sizing: border-box; }
+        .input-group { position: relative; width: 100%; margin: 10px 0; }
+        input { width: 100%; padding: 15px; border: 1.5px solid #fbcfe8; border-radius: 12px; outline: none; background: #fff9fb; font-size: 16px; box-sizing: border-box; }
+        .toggle-pass { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #888; font-size: 20px; z-index: 10; }
         
-        /* Bottom Navigation */
-        .bottom-nav { position: fixed; bottom: 0; width: 100%; max-width: 400px; background: white; display: flex; justify-content: space-around; padding: 12px 0; border-top: 1px solid #eee; z-index: 1000; }
+        /* Dashboard Styling */
+        #screen-main { display: none; flex-direction: column; min-height: 100vh; }
+        .bottom-nav { position: fixed; bottom: 0; width: 100%; max-width: 400px; background: white; display: flex; justify-content: space-around; padding: 12px 0; border-top: 1px solid #eee; }
         .nav-item { cursor: pointer; font-size: 24px; color: #ccc; transition: 0.3s; }
-        .nav-item.active { color: var(--main-color); transform: scale(1.1); }
+        .nav-item.active { color: var(--main-color); }
 
-        /* Sections */
         .content-section { flex: 1; padding: 20px; padding-bottom: 80px; overflow-y: auto; }
-        h1 { color: var(--main-color); text-align: center; font-size: 22px; }
+        .hidden { display: none !important; }
 
-        /* Chat UI */
-        #msg-container { height: 60vh; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padding: 10px; }
-        .msg { padding: 10px 15px; border-radius: 20px; max-width: 75%; font-size: 14px; line-height: 1.4; }
+        /* Chat & Gallery Grid */
+        #msg-container { height: 60vh; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padding: 10px; background: #fff9fb; border-radius: 15px; }
+        .msg { padding: 10px 15px; border-radius: 20px; max-width: 75%; font-size: 14px; }
         .msg.sent { background: var(--main-color); color: white; align-self: flex-end; border-bottom-right-radius: 4px; }
         .msg.received { background: #efefef; color: #333; align-self: flex-start; border-bottom-left-radius: 4px; }
 
-        /* Gallery UI */
         #gallery { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 2px; }
-        .img-container { aspect-ratio: 1/1; overflow: hidden; background: #eee; cursor: pointer; }
+        .img-container { aspect-ratio: 1/1; overflow: hidden; background: #eee; }
         .img-card { width: 100%; height: 100%; object-fit: cover; }
 
-        /* Heart Animation */
+        .btn { background: var(--main-color); color: white; border: none; padding: 15px; border-radius: 12px; width: 100%; font-weight: bold; cursor: pointer; margin-top: 10px; }
         .heart { position: fixed; color: var(--main-color); font-size: 18px; pointer-events: none; animation: fly 1s linear forwards; z-index: 9999; }
         @keyframes fly { 0% { transform: translate(0,0); opacity:1; } 100% { transform: translate(var(--x), var(--y)); opacity:0; } }
-        
-        .btn { background: var(--main-color); color: white; border: none; padding: 15px; border-radius: 12px; width: 100%; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
 
-    <div id="screen-auth" class="box animate__animated animate__fadeIn">
-        <h1>Ultimate Memories 💖</h1>
-        <div style="position:relative">
-            <input type="text" id="username" placeholder="Username">
-            <input type="password" id="pass" placeholder="Password">
-            <span class="toggle-pass" onclick="togglePass()">👁️</span>
-        </div>
-        <button class="btn" onclick="handleAuth()">Login / Register</button>
-        <p style="font-size:12px; color:#999; margin-top:20px;">Shared space for you and your partner</p>
-    </div>
-
-    <div id="screen-main" class="box hidden">
-        <div id="sec-chat" class="content-section animate__animated animate__fadeIn">
-            <h1>Messages 💬</h1>
-            <div id="msg-container"></div>
-            <div style="display:flex; gap:10px; padding:10px;">
-                <input type="text" id="msgInput" placeholder="Message..." style="margin:0;">
-                <button onclick="sendMsg()" class="btn" style="width:60px; margin:0;">➔</button>
+    <div class="box">
+        <div id="screen-auth" class="animate__animated animate__fadeIn">
+            <h1>Ultimate Memories 💖</h1>
+            <div class="input-group">
+                <input type="text" id="username" placeholder="Username">
             </div>
-        </div>
-
-        <div id="sec-gallery" class="content-section hidden animate__animated animate__fadeIn">
-            <h1>Gallery 📸</h1>
-            <div id="gallery"></div>
-        </div>
-
-        <div id="sec-upload" class="content-section hidden animate__animated animate__fadeIn">
-            <h1>New Memory ✨</h1>
-            <div style="text-align:center; padding:40px 20px; border:2px dashed #ddd; border-radius:20px; margin-top:20px;">
-                <input type="file" id="filePicker">
-                <button class="btn" onclick="uploadImg()" id="up-btn">Post Memory ❤️</button>
+            <div class="input-group">
+                <input type="password" id="pass" placeholder="Password">
+                <span class="toggle-pass" onclick="togglePass()">👁️</span>
             </div>
-            <button onclick="location.reload()" style="margin-top:50px; background:none; border:none; color:red; cursor:pointer;">Logout</button>
+            <button class="btn" onclick="handleAuth()">Login / Register</button>
+            <p style="font-size:12px; color:#999; margin-top:20px;">Shared space for you and your partner</p>
         </div>
 
-        <div class="bottom-nav">
-            <div class="nav-item active" onclick="showSec('chat', this)">🏠</div>
-            <div class="nav-item" onclick="showSec('gallery', this)">📸</div>
-            <div class="nav-item" onclick="showSec('upload', this)">📤</div>
+        <div id="screen-main">
+            <div id="sec-chat" class="content-section animate__animated animate__fadeIn">
+                <h1>Messages 💬</h1>
+                <div id="msg-container"></div>
+                <div style="display:flex; gap:10px; margin-top:10px;">
+                    <input type="text" id="msgInput" placeholder="Message..." style="margin:0;">
+                    <button onclick="sendMsg()" class="btn" style="width:60px; margin:0; padding:10px;">➔</button>
+                </div>
+            </div>
+
+            <div id="sec-gallery" class="content-section hidden animate__animated animate__fadeIn">
+                <h1>Gallery 📸</h1>
+                <div id="gallery"></div>
+            </div>
+
+            <div id="sec-upload" class="content-section hidden animate__animated animate__fadeIn">
+                <h1>New Memory ✨</h1>
+                <div style="text-align:center; padding:40px 20px; border:2px dashed #ddd; border-radius:20px; margin-top:20px;">
+                    <input type="file" id="filePicker">
+                    <button class="btn" onclick="uploadImg()" id="up-btn">Post Memory ❤️</button>
+                </div>
+                <button onclick="location.reload()" style="margin-top:50px; background:none; border:none; color:red; cursor:pointer;">Logout</button>
+            </div>
+
+            <div class="bottom-nav">
+                <div class="nav-item active" onclick="showSec('chat', this)">🏠</div>
+                <div class="nav-item" onclick="showSec('gallery', this)">📸</div>
+                <div class="nav-item" onclick="showSec('upload', this)">📤</div>
+            </div>
         </div>
     </div>
 
@@ -104,29 +106,32 @@
     const db = firebase.database();
     
     let currentUser = "";
-    let sharedUid = ""; // Hum yahan same username wale login ko as partner treat kar rahe hain
+    let sharedUid = "";
 
     function togglePass() { const p = document.getElementById('pass'); p.type = p.type==="password"?"text":"password"; }
 
     function handleAuth() {
         currentUser = document.getElementById('username').value.trim();
         const pass = document.getElementById('pass').value;
-        if(!currentUser || !pass) return alert("Details bhariye!");
+        if(!currentUser || !pass) return alert("Details fill karein!");
 
         const email = currentUser + "@memories.com";
         auth.signInWithEmailAndPassword(email, pass)
             .then(u => loginSuccess(u.user.uid))
             .catch(() => {
                 auth.createUserWithEmailAndPassword(email, pass)
-                    .then(u => loginSuccess(u.user.uid))
+                    .then(u => {
+                        alert("Account Created! Pehle Login karein.");
+                        location.reload();
+                    })
                     .catch(e => alert(e.message));
             });
     }
 
     function loginSuccess(uid) {
         sharedUid = uid;
-        document.getElementById('screen-auth').classList.add('hidden');
-        document.getElementById('screen-main').classList.remove('hidden');
+        document.getElementById('screen-auth').style.display = 'none'; // Login chhupao
+        document.getElementById('screen-main').style.display = 'flex'; // App dikhao
         loadData();
     }
 
@@ -138,14 +143,10 @@
     }
 
     function loadData() {
-        // Photos
         db.ref('photos/' + sharedUid).on('value', snap => {
             const gal = document.getElementById('gallery'); gal.innerHTML = "";
-            snap.forEach(c => {
-                gal.innerHTML += `<div class="img-container"><img src="${c.val()}" class="img-card"></div>`;
-            });
+            snap.forEach(c => gal.innerHTML += `<div class="img-container"><img src="${c.val()}" class="img-card"></div>`);
         });
-        // Chat
         db.ref('chats/' + sharedUid).on('value', snap => {
             const con = document.getElementById('msg-container'); con.innerHTML = "";
             snap.forEach(c => {
@@ -158,14 +159,13 @@
 
     async function uploadImg() {
         const file = document.getElementById('filePicker').files[0];
-        if(!file) return alert("Photo select karein!");
+        if(!file) return alert("Select photo!");
         const btn = document.getElementById('up-btn'); btn.innerText = "Posting...";
         const formData = new FormData(); formData.append("image", file);
         const res = await fetch("https://api.imgbb.com/1/upload?key=cb53c38c41a5ce7d642d1152d306da9a", {method:"POST", body:formData});
         const data = await res.json();
         db.ref('photos/' + sharedUid).push(data.data.url);
         btn.innerText = "Post Memory ❤️";
-        alert("Memory Posted!");
         showSec('gallery', document.querySelectorAll('.nav-item')[1]);
     }
 
@@ -175,9 +175,8 @@
         document.getElementById('msgInput').value = "";
     }
 
-    // Hearts Animation
     document.addEventListener('mousemove', (e) => {
-        if(Math.random() > 0.9) {
+        if(Math.random() > 0.95) {
             const h = document.createElement('div'); h.className = 'heart'; h.innerHTML = "❤️";
             h.style.left = e.clientX + 'px'; h.style.top = e.clientY + 'px';
             h.style.setProperty('--x', (Math.random()*100-50)+'px'); h.style.setProperty('--y', (Math.random()*-100-50)+'px');
