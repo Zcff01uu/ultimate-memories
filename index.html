@@ -12,9 +12,15 @@
     <style>
         :root { --main-color: #d63384; --bg-color: #fff5f8; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg-color); margin: 0; padding: 20px; height: 100vh; display: flex; align-items: center; justify-content: center; overflow: hidden; }
-        .box { width: 90%; max-width: 380px; background: white; padding: 30px; border-radius: 25px; box-shadow: 0 10px 40px rgba(214, 51, 132, 0.1); border: 1px solid #ffdae9; text-align: center; position: relative; z-index: 10; }
+        .box { width: 90%; max-width: 380px; background: white; padding: 30px; border-radius: 25px; box-shadow: 0 10px 40px rgba(214, 51, 132, 0.1); border: 1px solid #ffdae9; text-align: center; position: relative; }
         h1 { color: var(--main-color); margin-bottom: 20px; font-size: 24px; }
-        input { width: 100%; padding: 14px; margin: 10px 0; border: 1px solid #fbcfe8; border-radius: 12px; outline: none; box-sizing: border-box; background: #fff9fb; font-size: 16px; }
+        
+        .input-group { position: relative; width: 100%; margin: 10px 0; }
+        input { width: 100%; padding: 14px; border: 1px solid #fbcfe8; border-radius: 12px; outline: none; box-sizing: border-box; background: #fff9fb; font-size: 16px; }
+        
+        /* Eye Icon Styling */
+        .toggle-pass { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #aaa; font-size: 18px; z-index: 5; }
+
         .btn { background: var(--main-color); color: white; border: none; padding: 15px; border-radius: 15px; cursor: pointer; width: 100%; font-weight: bold; margin-top: 10px; font-size: 16px; }
         .hidden { display: none; }
         #recaptcha-container { margin-top: 10px; }
@@ -26,33 +32,51 @@
 
     <div id="screen-login" class="box animate__animated animate__fadeInDown">
         <h1>🔑 Login</h1>
-        <input type="text" id="log-phone" placeholder="Mobile Number (with +91)">
-        <input type="password" id="log-pass" placeholder="Password">
+        <div class="input-group">
+            <input type="text" id="log-phone" placeholder="Mobile Number (+91)">
+        </div>
+        <div class="input-group">
+            <input type="password" id="log-pass" placeholder="Password">
+            <span class="toggle-pass" onclick="togglePasswordView('log-pass')">👁️</span>
+        </div>
         <button class="btn" onclick="handleLogin()">Login</button>
         <p onclick="switchTo('register')" style="cursor:pointer; color:#d63384; font-size:14px; margin-top:15px;">New User? Create Account</p>
     </div>
 
     <div id="screen-register" class="box hidden animate__animated animate__fadeInDown">
         <h1>📝 Register</h1>
-        <input type="text" id="reg-phone" placeholder="+91XXXXXXXXXX">
+        <div class="input-group">
+            <input type="text" id="reg-phone" placeholder="+91XXXXXXXXXX">
+        </div>
         <div id="recaptcha-container"></div>
         <button class="btn" id="send-otp-btn" onclick="sendOTP()">Send OTP</button>
         
         <div id="otp-section" class="hidden">
-            <input type="text" id="otp-code" placeholder="Enter 6-digit OTP">
-            <input type="password" id="reg-pass" placeholder="Create Secret Password">
+            <input type="text" id="otp-code" placeholder="6-digit OTP">
+            <div class="input-group">
+                <input type="password" id="reg-pass" placeholder="Create Secret Password">
+                <span class="toggle-pass" onclick="togglePasswordView('reg-pass')">👁️</span>
+            </div>
             <button class="btn" onclick="verifyOTP()">Verify & Register</button>
         </div>
         <p onclick="switchTo('login')" style="cursor:pointer; color:#d63384; font-size:14px; margin-top:15px;">Back to Login</p>
     </div>
 
-    <div id="screen-menu" class="box hidden">
-        <h1>Welcome 💖</h1>
-        <p>Aapka account verify ho gaya hai!</p>
-        <button class="btn" onclick="location.reload()">Logout</button>
-    </div>
-
 <script>
+    // --- APP LOGIC ---
+    function togglePasswordView(inputId) {
+        const passInput = document.getElementById(inputId);
+        const icon = passInput.nextElementSibling;
+        if (passInput.type === "password") {
+            passInput.type = "text";
+            icon.innerText = "🔒";
+        } else {
+            passInput.type = "password";
+            icon.innerText = "👁️";
+        }
+    }
+
+    // Firebase Config (Wahi purana)
     const firebaseConfig = {
         apiKey: "AIzaSyA7fMm1LjMOz4BefGk60cmMuSoFzBvJapg",
         databaseURL: "https://ultimatememories-64a97-default-rtdb.firebaseio.com",
@@ -64,65 +88,47 @@
     const db = firebase.database();
     const auth = firebase.auth();
 
-    let confirmationResult;
-
+    // Navigation and Hearts logic same as before...
     function switchTo(page) {
         document.getElementById('screen-login').classList.add('hidden');
         document.getElementById('screen-register').classList.add('hidden');
         document.getElementById(page === 'login' ? 'screen-login' : 'screen-register').classList.remove('hidden');
     }
 
-    // --- STEP 1: OTP BHEJNA ---
+    // OTP and Login functions... (Aapke pichle code wale)
+    let confirmationResult;
     function sendOTP() {
         const ph = document.getElementById('reg-phone').value.trim();
-        if(!ph.startsWith('+91')) return alert("Number +91 se start karein!");
-
+        if(!ph.startsWith('+91')) return alert("Use +91!");
         window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', { 'size': 'invisible' });
-        
-        auth.signInWithPhoneNumber(ph, window.recaptchaVerifier)
-            .then((result) => {
-                confirmationResult = result;
-                alert("OTP bhej diya gaya hai!");
-                document.getElementById('otp-section').classList.remove('hidden');
-                document.getElementById('send-otp-btn').classList.add('hidden');
-            }).catch((err) => alert("Error: " + err.message));
+        auth.signInWithPhoneNumber(ph, window.recaptchaVerifier).then((result) => {
+            confirmationResult = result;
+            alert("OTP Sent!");
+            document.getElementById('otp-section').classList.remove('hidden');
+            document.getElementById('send-otp-btn').classList.add('hidden');
+        }).catch((err) => alert(err.message));
     }
 
-    // --- STEP 2: VERIFY & SAVE ---
     function verifyOTP() {
         const code = document.getElementById('otp-code').value;
         const pass = document.getElementById('reg-pass').value;
         const ph = document.getElementById('reg-phone').value.trim();
-
-        if(!code || !pass) return alert("OTP aur Password dono bhariye!");
-
-        confirmationResult.confirm(code).then((result) => {
-            // Success! Ab database mein save karte hain
-            db.ref('users/' + ph.replace('+', '')).set({
-                password: pass,
-                verified: true
-            }).then(() => {
-                alert("Verification Success! Ab login karein.");
-                location.reload();
+        confirmationResult.confirm(code).then(() => {
+            db.ref('users/' + ph.replace('+', '')).set({ password: pass, verified: true }).then(() => {
+                alert("Success! Now Login."); location.reload();
             });
-        }).catch(() => alert("Galat OTP!"));
+        }).catch(() => alert("Wrong OTP!"));
     }
 
     function handleLogin() {
         const ph = document.getElementById('log-phone').value.trim().replace('+', '');
         const ps = document.getElementById('log-pass').value.trim();
-        
         db.ref('users/' + ph).once('value', s => {
-            if(s.exists() && s.val().password === ps) {
-                document.getElementById('screen-login').classList.add('hidden');
-                document.getElementById('screen-menu').classList.remove('hidden');
-            } else {
-                alert("Wrong details!");
-            }
+            if(s.exists() && s.val().password === ps) { alert("Welcome back!"); /* Redirect to gallery */ }
+            else alert("Error!");
         });
     }
 
-    // Hearts effect
     document.addEventListener('mousemove', (e) => { if(Math.random() > 0.9) createHeart(e.clientX, e.clientY); });
     function createHeart(x, y) {
         const h = document.createElement('div'); h.innerHTML = "❤️"; h.className = 'heart-particle';
