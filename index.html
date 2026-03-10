@@ -11,12 +11,12 @@
     
     <style>
         :root { --main-color: #d63384; --bg-color: #fff5f8; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg-color); margin: 0; padding: 20px; display: flex; align-items: center; justify-content: center; min-height: 100vh; cursor: crosshair; }
-        .box { width: 95%; max-width: 400px; background: white; padding: 30px; border-radius: 25px; box-shadow: 0 10px 40px rgba(214,51,132,0.15); border: 1px solid #ffdae9; text-align: center; z-index: 10; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg-color); margin: 0; padding: 20px; display: flex; align-items: center; justify-content: center; min-height: 100vh; }
+        .box { width: 95%; max-width: 400px; background: white; padding: 30px; border-radius: 25px; box-shadow: 0 10px 40px rgba(214,51,132,0.15); border: 1px solid #ffdae9; text-align: center; }
         h1 { color: var(--main-color); margin-bottom: 20px; font-size: 24px; }
         .input-group { position: relative; width: 100%; margin: 12px 0; }
-        input { width: 100%; padding: 15px; border: 1.5px solid #fbcfe8; border-radius: 12px; outline: none; box-sizing: border-box; background: #fff9fb; font-size: 16px; width: 100%; }
-        .toggle-pass { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); cursor: pointer; z-index: 20; font-size: 18px; }
+        input { width: 100%; padding: 15px; border: 1.5px solid #fbcfe8; border-radius: 12px; outline: none; box-sizing: border-box; background: #fff9fb; font-size: 16px; }
+        .toggle-pass { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); cursor: pointer; font-size: 18px; }
         .btn { background: var(--main-color); color: white; border: none; padding: 16px; border-radius: 15px; width: 100%; font-weight: bold; cursor: pointer; margin-top: 10px; font-size: 16px; }
         .hidden { display: none !important; }
         .forgot-link { color: var(--main-color); font-size: 13px; margin-top: 10px; cursor: pointer; display: block; text-decoration: underline; }
@@ -24,11 +24,9 @@
         #gallery { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; max-height: 400px; overflow-y: auto; padding: 10px; }
         .img-container { overflow: hidden; border-radius: 12px; height: 120px; border: 2px solid white; cursor: pointer; }
         .img-card { width: 100%; height: 100%; object-fit: cover; }
+        
         #modal { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index: 10000; display:none; flex-direction: column; align-items:center; justify-content:center; }
         #modal img { max-width: 90%; max-height: 70%; border-radius: 10px; }
-        
-        .heart { position: fixed; color: var(--main-color); font-size: 18px; pointer-events: none; animation: fly 1s linear forwards; z-index: 9999; }
-        @keyframes fly { 0% { transform: translate(0, 0); opacity: 1; } 100% { transform: translate(var(--x), var(--y)); opacity: 0; } }
     </style>
 </head>
 <body>
@@ -111,8 +109,7 @@
         } else {
             auth.createUserWithEmailAndPassword(email, pass)
                 .then(u => {
-                    u.user.sendEmailVerification();
-                    alert("Account Created! Check your email for verification link. 📩");
+                    alert("Account Created! You can login now. 🥳");
                     toggleMode();
                 })
                 .catch(err => alert("Registration Error: " + err.message));
@@ -122,7 +119,7 @@
     function resetPassword() {
         const email = document.getElementById('email').value;
         if(!email) return alert("Enter your email first!");
-        auth.sendPasswordResetEmail(email).then(() => alert("Reset link sent! 📩")).catch(err => alert(err.message));
+        auth.sendPasswordResetEmail(email).then(() => alert("Reset link sent! Please check your SPAM folder too. 📩")).catch(err => alert(err.message));
     }
 
     function showUploadPage(uid) {
@@ -179,16 +176,6 @@
     }
 
     function closeZoom() { document.getElementById('modal').style.display = "none"; }
-
-    document.addEventListener('mousemove', (e) => {
-        if(Math.random() > 0.8) {
-            const h = document.createElement('div'); h.className = 'heart'; h.innerHTML = "❤️";
-            h.style.left = e.clientX + 'px'; h.style.top = e.clientY + 'px';
-            h.style.setProperty('--x', (Math.random() * 100 - 50) + 'px');
-            h.style.setProperty('--y', (Math.random() * -100 - 50) + 'px');
-            document.body.appendChild(h); setTimeout(() => h.remove(), 1000);
-        }
-    });
 </script>
 </body>
 </html>
