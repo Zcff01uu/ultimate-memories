@@ -3,142 +3,250 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ultimate Memories</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <title>Ultimate Memories 💖</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    
     <style>
-        :root { --primary: #6c5ce7; --secondary: #a29bfe; --bg: #f9f9f9; }
-        body { font-family: 'Poppins', sans-serif; background: var(--bg); display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; overflow: hidden; }
+        :root { --main-color: #d63384; --bg-color: #fff5f8; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg-color); margin: 0; padding: 20px; display: flex; align-items: center; justify-content: center; min-height: 100vh; overflow-x: hidden; }
         
-        /* Animations */
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .box { width: 95%; max-width: 400px; background: white; padding: 30px; border-radius: 25px; box-shadow: 0 10px 40px rgba(214,51,132,0.15); border: 1px solid #ffdae9; text-align: center; position: relative; }
+        h1 { color: var(--main-color); margin-bottom: 20px; font-size: 24px; }
         
-        .card { background: white; padding: 2.5rem; border-radius: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); width: 100%; max-width: 380px; animation: fadeIn 0.8s ease-out; position: relative; }
-        h2 { color: #2d3436; margin-bottom: 0.5rem; }
-        p { color: #636e72; font-size: 0.9rem; margin-bottom: 1.5rem; }
+        .input-group { position: relative; width: 100%; margin: 12px 0; }
+        input { width: 100%; padding: 15px; border: 1.5px solid #fbcfe8; border-radius: 12px; outline: none; box-sizing: border-box; background: #fff9fb; font-size: 16px; }
         
-        .input-group { position: relative; margin-bottom: 15px; }
-        input { width: 100%; padding: 12px 15px; border: 2px solid #eee; border-radius: 10px; box-sizing: border-box; outline: none; transition: 0.3s; font-size: 1rem; }
-        input:focus { border-color: var(--primary); }
+        .toggle-pass { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); cursor: pointer; font-size: 18px; color: #888; z-index: 100; }
         
-        .eye-icon { position: absolute; right: 15px; top: 14px; cursor: pointer; color: #b2bec3; }
+        .btn { background: var(--main-color); color: white; border: none; padding: 16px; border-radius: 15px; width: 100%; font-weight: bold; cursor: pointer; margin-top: 10px; font-size: 16px; transition: 0.3s; }
+        .btn:active { transform: scale(0.95); }
         
-        button { width: 100%; padding: 12px; border: none; border-radius: 10px; cursor: pointer; font-weight: 600; font-size: 1rem; transition: 0.3s; margin-top: 10px; }
-        .btn-main { background: var(--primary); color: white; box-shadow: 0 4px 15px rgba(108, 92, 231, 0.3); }
-        .btn-main:hover { background: #5b4cc4; transform: translateY(-2px); }
-        
-        .toggle-text { margin-top: 20px; font-size: 0.85rem; color: #636e72; }
-        .toggle-text span { color: var(--primary); cursor: pointer; font-weight: bold; }
-        
-        /* Hide sections initially */
-        .hidden { display: none; }
+        .hidden { display: none !important; }
+        .forgot-link { color: var(--main-color); font-size: 13px; margin-top: 15px; cursor: pointer; display: block; text-decoration: underline; }
+
+        /* Gallery Grid */
+        #gallery { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; max-height: 400px; overflow-y: auto; padding: 10px; margin-top: 15px; }
+        .img-container { overflow: hidden; border-radius: 15px; height: 130px; border: 3px solid white; box-shadow: 0 5px 15px rgba(0,0,0,0.1); cursor: pointer; }
+        .img-card { width: 100%; height: 100%; object-fit: cover; }
+
+        /* Zoom Modal */
+        #modal { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index: 10000; display:none; flex-direction: column; align-items:center; justify-content:center; }
+        #modal img { max-width: 90%; max-height: 70%; border-radius: 15px; border: 2px solid white; }
+        .modal-btns { margin-top: 25px; display: flex; gap: 20px; align-items: center; }
+        .del-btn { background: #ff4757; color: white; border: none; padding: 12px 25px; border-radius: 10px; cursor: pointer; font-weight: bold; }
+        .close-txt { color: white; cursor: pointer; text-decoration: underline; }
+
+        /* Floating Hearts */
+        .heart { position: fixed; color: var(--main-color); font-size: 18px; pointer-events: none; animation: fly 1s linear forwards; z-index: 9999; }
+        @keyframes fly { 0% { transform: translate(0,0); opacity:1; } 100% { transform: translate(var(--x), var(--y)); opacity:0; } }
     </style>
 </head>
 <body>
 
-<div id="login-page" class="card">
-    <h2>Welcome Back!</h2>
-    <p>Sofia, please login to your memories.</p>
-    <div class="input-group">
-        <input type="email" id="login-email" placeholder="Email Address">
+    <div id="modal">
+        <img id="zoomImg" src="">
+        <div class="modal-btns">
+            <button class="del-btn" id="deleteBtnAction">Delete Memory 🗑️</button>
+            <p class="close-txt" onclick="closeZoom()">Close ✖</p>
+        </div>
     </div>
-    <div class="input-group">
-        <input type="password" id="login-pass" placeholder="Password">
-        <i class="fas fa-eye eye-icon" onclick="togglePass('login-pass')"></i>
-    </div>
-    <button class="btn-main" id="btnLogin">Login</button>
-    <div class="toggle-text">
-        Don't have an account? <span onclick="showPage('signup-page')">Sign Up</span><br><br>
-        <span onclick="showPage('reset-page')">Forgot Password?</span>
-    </div>
-</div>
 
-<div id="signup-page" class="card hidden">
-    <h2>Create Account</h2>
-    <p>Join Ultimate Memories today.</p>
-    <div class="input-group">
-        <input type="email" id="signup-email" placeholder="Email Address">
+    <div id="screen-auth" class="box animate__animated animate__zoomIn">
+        <h1 id="auth-title">🔑 Login</h1>
+        <div class="input-group">
+            <input type="email" id="email" placeholder="Enter Email">
+        </div>
+        <div class="input-group">
+            <input type="password" id="pass" placeholder="Enter Password">
+            <span class="toggle-pass" onclick="togglePass()">👁️</span>
+        </div>
+        <button class="btn" onclick="handleAuth()">Access Vault</button>
+        
+        <span id="forgot-password" class="forgot-link hidden" onclick="resetPassword()">Forgot Password? Reset Link 📧</span>
+        
+        <p onclick="toggleMode()" id="toggle-text" style="cursor:pointer; color:var(--main-color); margin-top:20px; font-size:14px; font-weight:500;">New User? Create Account</p>
     </div>
-    <div class="input-group">
-        <input type="password" id="signup-pass" placeholder="Password">
-        <i class="fas fa-eye eye-icon" onclick="togglePass('signup-pass')"></i>
-    </div>
-    <button class="btn-main" id="btnSignup" style="background: #00b894;">Create Account</button>
-    <div class="toggle-text">
-        Already have an account? <span onclick="showPage('login-page')">Login</span>
-    </div>
-</div>
 
-<div id="reset-page" class="card hidden">
-    <h2>Reset Password</h2>
-    <p>Enter email to get reset link.</p>
-    <div class="input-group">
-        <input type="email" id="reset-email" placeholder="Registered Email">
+    <div id="screen-upload" class="box hidden animate__animated animate__fadeIn">
+        <h1>Save Memory 💖</h1>
+        <div style="background:#fff0f5; padding:20px; border-radius:20px; border:2px dashed var(--main-color); margin-bottom: 20px;">
+            <input type="file" id="filePicker" style="font-size: 12px; margin-bottom: 10px; width:100%;">
+            <button class="btn" onclick="uploadImg()" id="up-btn">Upload to Cloud ✨</button>
+        </div>
+        <button class="btn" style="background:#6c757d" onclick="goToGallery()">See Photo 📸</button>
+        <button onclick="location.reload()" style="background:none; border:none; color:#bbb; margin-top:25px; cursor:pointer;">Logout</button>
     </div>
-    <button class="btn-main" id="btnReset" style="background: #0984e3;">Send Reset Link</button>
-    <div class="toggle-text">
-        Remembered? <span onclick="showPage('login-page')">Back to Login</span>
+
+    <div id="screen-gallery" class="box hidden animate__animated animate__slideInRight">
+        <h1>Memories Gallery 📜</h1>
+        <div id="gallery"></div>
+        <button class="btn" style="background:#6c757d; margin-top:20px;" onclick="goToUpload()">⬅ Back to Upload</button>
     </div>
-</div>
 
-<script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendEmailVerification, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-
-    // QuestVerse New Config from image_86b242
+<script>
+    // Firebase Configuration
     const firebaseConfig = {
-        apiKey: "AIzaSyC0-_tmpcPMJCCYGlXDRewupZmGog-eC3g",
-        authDomain: "questverse-a6352.firebaseapp.com",
-        projectId: "questverse-a6352",
-        storageBucket: "questverse-a6352.firebasestorage.app",
-        messagingSenderId: "74079907074",
-        appId: "1:74079907074:web:4ab6987f4389e43d64e61b",
-        measurementId: "G-8YMVKW90LM"
+        apiKey: "AIzaSyA7fMm1LjMOz4BefGk60cmMuSoFzBvJapg",
+        databaseURL: "https://ultimatememories-64a97-default-rtdb.firebaseio.com",
+        projectId: "ultimatememories-64a97",
+        appId: "1:513888704426:web:b1476d30698d45dd117dd3",
+        authDomain: "ultimatememories-64a97.firebaseapp.com"
     };
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.database();
+    
+    let isLogin = true;
+    let wrongAttempts = 0;
 
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
+    // Toggle between Login and Register
+    function toggleMode() {
+        const authBox = document.getElementById('screen-auth');
+        authBox.classList.remove('animate__zoomIn');
+        void authBox.offsetWidth; 
+        authBox.classList.add('animate__zoomIn');
 
-    // Navigation Logic
-    window.showPage = (pageId) => {
-        document.querySelectorAll('.card').forEach(c => c.classList.add('hidden'));
-        document.getElementById(pageId).classList.remove('hidden');
-    };
+        isLogin = !isLogin;
+        document.getElementById('auth-title').innerText = isLogin ? "🔑 Login" : "📝 Register";
+        document.getElementById('toggle-text').innerText = isLogin ? "New User? Create Account" : "Back to Login";
+        document.getElementById('forgot-password').classList.add('hidden');
+    }
 
-    // Eye Button Logic
-    window.togglePass = (id) => {
-        const input = document.getElementById(id);
-        input.type = input.type === "password" ? "text" : "password";
-    };
+    // Password Eye Function
+    function togglePass() {
+        const p = document.getElementById('pass');
+        p.type = (p.type === "password") ? "text" : "password";
+    }
 
-    // Firebase Logic
-    document.getElementById('btnSignup').addEventListener('click', () => {
-        const email = document.getElementById('signup-email').value;
-        const pass = document.getElementById('signup-pass').value;
-        createUserWithEmailAndPassword(auth, email, pass)
-            .then(() => {
-                sendEmailVerification(auth.currentUser);
-                alert("Sofia, Check your Gmail for verification link!");
-                showPage('login-page');
-            }).catch(err => alert(err.message));
-    });
+    // Authentication Logic
+    function handleAuth() {
+        const email = document.getElementById('email').value;
+        const pass = document.getElementById('pass').value;
 
-    document.getElementById('btnLogin').addEventListener('click', () => {
-        const email = document.getElementById('login-email').value;
-        const pass = document.getElementById('login-pass').value;
-        signInWithEmailAndPassword(auth, email, pass)
-            .then(() => {
-                if(auth.currentUser.emailVerified) alert("Login Success!");
-                else alert("Please verify your email first!");
-            }).catch(err => alert(err.message));
-    });
+        if(!email || !pass) return alert("Pehle Email aur Password bhariye!");
 
-    document.getElementById('btnReset').addEventListener('click', () => {
-        const email = document.getElementById('reset-email').value;
-        sendPasswordResetEmail(auth, email)
-            .then(() => alert("Reset link sent to " + email))
+        if(isLogin) {
+            auth.signInWithEmailAndPassword(email, pass)
+                .then(u => showUploadScreen(u.user.uid))
+                .catch(err => {
+                    wrongAttempts++;
+                    alert("Error: " + err.message);
+                    if(wrongAttempts >= 2) document.getElementById('forgot-password').classList.remove('hidden');
+                });
+        } else {
+            auth.createUserWithEmailAndPassword(email, pass)
+                .then(() => {
+                    alert("Account Created! Swagat hai Sofia. 🥳");
+                    toggleMode();
+                })
+                .catch(err => alert("Error: " + err.message));
+        }
+    }
+
+    // Forgot Password Logic
+    function resetPassword() {
+        const email = document.getElementById('email').value;
+        if(!email) return alert("Pehle email box mein apni email likhein!");
+        auth.sendPasswordResetEmail(email)
+            .then(() => alert("Reset link bhej diya gaya hai! Check your Inbox/Spam. 📩"))
             .catch(err => alert(err.message));
+    }
+
+    // Navigation Functions
+    function showUploadScreen(uid) {
+        window.currentUid = uid;
+        document.getElementById('screen-auth').classList.add('hidden');
+        document.getElementById('screen-upload').classList.remove('hidden');
+    }
+
+    function goToGallery() {
+        document.getElementById('screen-upload').classList.add('hidden');
+        document.getElementById('screen-gallery').classList.remove('hidden');
+        loadGallery();
+    }
+
+    function goToUpload() {
+        document.getElementById('screen-gallery').classList.add('hidden');
+        document.getElementById('screen-upload').classList.remove('hidden');
+    }
+
+    // Image Upload (to ImgBB)
+    async function uploadImg() {
+        const file = document.getElementById('filePicker').files[0];
+        if(!file) return alert("Select a photo first!");
+        
+        const btn = document.getElementById('up-btn');
+        btn.innerText = "Uploading... ⏳";
+        btn.disabled = true;
+
+        const formData = new FormData();
+        formData.append("image", file);
+
+        try {
+            const res = await fetch("https://api.imgbb.com/1/upload?key=cb53c38c41a5ce7d642d1152d306da9a", {
+                method: "POST",
+                body: formData
+            });
+            const data = await res.json();
+            db.ref('pics/' + window.currentUid).push(data.data.url);
+            alert("Memory Saved! ❤️");
+        } catch (e) {
+            alert("Upload failed. Try again.");
+        } finally {
+            btn.innerText = "Upload to Cloud ✨";
+            btn.disabled = false;
+        }
+    }
+
+    // Load Gallery from Firebase
+    function loadGallery() {
+        const galDiv = document.getElementById('gallery');
+        db.ref('pics/' + window.currentUid).on('value', snap => {
+            galDiv.innerHTML = "";
+            snap.forEach(child => {
+                const imgWrap = document.createElement('div');
+                imgWrap.className = "img-container animate__animated animate__fadeIn";
+                imgWrap.innerHTML = `<img src="${child.val()}" class="img-card" onclick="openZoom('${child.val()}', '${child.key}')">`;
+                galDiv.prepend(imgWrap);
+            });
+        });
+    }
+
+    // Zoom and Delete Functions
+    function openZoom(url, key) {
+        document.getElementById('zoomImg').src = url;
+        document.getElementById('modal').style.display = "flex";
+        
+        document.getElementById('deleteBtnAction').onclick = function() {
+            if(confirm("Hamesha ke liye delete kar dein? 🥺")) {
+                db.ref('pics/' + window.currentUid + '/' + key).remove();
+                closeZoom();
+            }
+        };
+    }
+
+    function closeZoom() {
+        document.getElementById('modal').style.display = "none";
+    }
+
+    // Background Heart Animation
+    document.addEventListener('mousemove', (e) => {
+        if(Math.random() > 0.9) {
+            const heart = document.createElement('div');
+            heart.className = 'heart';
+            heart.innerHTML = "❤️";
+            heart.style.left = e.clientX + 'px';
+            heart.style.top = e.clientY + 'px';
+            heart.style.setProperty('--x', (Math.random() * 100 - 50) + 'px');
+            heart.style.setProperty('--y', (Math.random() * -100 - 50) + 'px');
+            document.body.appendChild(heart);
+            setTimeout(() => heart.remove(), 1000);
+        }
     });
 </script>
-
 </body>
 </html>
+
