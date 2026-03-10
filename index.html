@@ -12,7 +12,6 @@
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; overflow: hidden; -webkit-user-select: none; }
         .container { width: 100%; max-width: 450px; background: white; height: 100vh; position: relative; margin: 0 auto; display: flex; flex-direction: column; }
         
-        /* Auth */
         #auth-view { padding: 40px 20px; text-align: center; background: white; height: 100%; display: flex; flex-direction: column; justify-content: center; z-index: 5000; position: absolute; width: 100%; box-sizing: border-box; }
         .logo { font-family: 'Brush Script MT', cursive; font-size: 45px; color: var(--accent); margin-bottom: 20px; }
         .inp { width: 90%; padding: 12px; margin: 8px 0; border: 1px solid #ffc1e3; border-radius: 8px; outline: none; background: #fffcfd; }
@@ -20,16 +19,20 @@
 
         header { padding: 15px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; background: white; }
         .app-title { font-family: 'Brush Script MT', cursive; font-size: 26px; color: var(--accent); }
-        .view { flex: 1; overflow-y: auto; padding-bottom: 80px; }
+        .view { flex: 1; overflow-y: auto; padding-bottom: 80px; scroll-behavior: smooth; }
         .hidden { display: none !important; }
 
-        /* Feed Style */
+        /* Feed */
         .post { background: white; border-bottom: 8px solid #f0f0f0; padding-bottom: 10px; }
-        .post-header { display: flex; align-items: center; padding: 10px; gap: 10px; font-weight: bold; }
-        .post-img { width: 100%; aspect-ratio: 1/1; object-fit: cover; background: #eee; }
+        .post-header { display: flex; align-items: center; padding: 10px; gap: 10px; font-weight: bold; font-size: 14px; }
+        .post-img { width: 100%; aspect-ratio: 1/1; object-fit: cover; background: #eee; cursor: pointer; }
         
+        /* Image Zoom Overlay */
+        #zoom-view { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:9000; display:none; align-items:center; justify-content:center; }
+        #zoom-view img { max-width: 100%; max-height: 100%; }
+
         .item { padding: 15px; border-bottom: 1px solid #f9f9f9; display: flex; align-items: center; position: relative; cursor: pointer; }
-        .avatar { width: 40px; height: 40px; background: #ffd1dc; border-radius: 50%; display: flex; align-items: center; justify-content: center; overflow: hidden; font-size: 18px; }
+        .avatar { width: 40px; height: 40px; background: #ffd1dc; border-radius: 50%; display: flex; align-items: center; justify-content: center; overflow: hidden; }
         .avatar img { width: 100%; height: 100%; object-fit: cover; }
         
         .dot { width: 10px; height: 10px; background: #ff3b7b; border-radius: 50%; position: absolute; right: 25px; border: 2px solid white; display: none; }
@@ -66,20 +69,12 @@
             <div style="position:relative; font-size:22px; cursor:pointer;" onclick="tab('notif')">❤️<div id="heart-dot" class="heart-dot"></div></div>
         </header>
 
-        <div id="tab-home" class="view">
-            <div id="feed-container"></div>
-        </div>
-
-        <div id="tab-msg" class="view hidden">
-            <h4 style="margin:15px;">Inbox</h4>
-            <div id="inbox"></div>
-        </div>
-
+        <div id="tab-home" class="view"><div id="feed-container"></div></div>
+        <div id="tab-msg" class="view hidden"><h4 style="margin:15px;">Inbox</h4><div id="inbox"></div></div>
         <div id="tab-search" class="view hidden">
             <div style="padding:15px; display:flex; gap:5px;"><input type="text" id="find-u" class="inp" style="margin:0; flex:1;" placeholder="Search..."><button class="btn" style="width:auto; margin:0;" onclick="search()">Go</button></div>
             <div id="search-results"></div>
         </div>
-
         <div id="tab-notif" class="view hidden"><h4 style="margin:15px;">Requests</h4><div id="req-list"></div></div>
 
         <div id="tab-profile" class="view hidden" style="text-align:center; padding-top:20px;">
@@ -102,6 +97,8 @@
         </nav>
     </div>
 
+    <div id="zoom-view" onclick="this.style.display='none'"><img id="zoom-img"></div>
+
     <div id="chat-view">
         <div style="padding:15px; border-bottom:1px solid #eee; display:flex; align-items:center; gap:10px;"><span onclick="closeChat()" style="font-size:24px;">←</span><b id="chat-title">User</b></div>
         <div id="msg-list"></div>
@@ -119,7 +116,7 @@
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth(), db = firebase.database();
 
-    let myU = "", myId = "", activeRid = "", selectedU = "", holdTimer, isOut = false;
+    let myU = "", myId = "", activeRid = "", selectedU = "", holdTimer, isOut = false, myFriends = [];
 
     auth.onAuthStateChanged(user => {
         if(user && !isOut) {
@@ -135,8 +132,7 @@
 
     async function handleAuth() {
         isOut = false;
-        let u = document.getElementById('user-in').value.toLowerCase().trim();
-        let p = document.getElementById('pass-in').value;
+        let u = document.getElementById('user-in').value.toLowerCase().trim(), p = document.getElementById('pass-in').value;
         if(u && p.length >= 6) {
             try { await auth.signInWithEmailAndPassword(u+"@m.com", p); }
             catch(e) { let res = await auth.createUserWithEmailAndPassword(u+"@m.com", p); await db.ref('users/'+u).set(res.user.uid); }
@@ -155,20 +151,13 @@
     }
 
     function initApp() {
-        // Load Feed
-        db.ref('feed').on('value', s => {
-            const feed = document.getElementById('feed-container'); feed.innerHTML = "";
-            let posts = []; s.forEach(p => { posts.unshift(p.val()); });
-            posts.forEach(p => {
-                feed.innerHTML += `<div class="post"><div class="post-header"><b>${p.u}</b></div><img src="${p.img}" class="post-img"></div>`;
-            });
-        });
-
-        // Inbox
+        // Track Friends for Feed
         db.ref('partners/' + myId).on('value', s => {
+            myFriends = [myU]; // Include self
             const container = document.getElementById('inbox'); container.innerHTML = "";
             s.forEach(p => {
                 const name = p.key, rid = p.val().sId;
+                myFriends.push(name);
                 const div = document.createElement('div'); div.className = 'item'; div.id = 'chat-'+name;
                 div.innerHTML = `<div class="avatar" id="av-${name}">👤</div><div style="margin-left:10px;"><b>${name}</b></div><div class="dot"></div>`;
                 div.addEventListener('touchstart', () => { holdTimer = setTimeout(() => { selectedU = name; activeRid = rid; document.getElementById('hold-menu').classList.add('show'); }, 800); });
@@ -177,18 +166,34 @@
                 container.appendChild(div);
                 db.ref('chats/'+rid).limitToLast(1).on('child_added', snap => { if(snap.val().u !== myU && activeRid !== rid) div.classList.add('has-new'); });
             });
+            loadFeed();
         });
 
-        // My Pic
         db.ref('pics/' + myId).on('value', s => { if(s.exists()) document.getElementById('my-pic').innerHTML = `<img src="${s.val()}">`; });
-        
-        // Heart Dot
         db.ref('requests/' + myId).on('value', s => { 
             document.getElementById('heart-dot').style.display = s.exists() ? 'block' : 'none';
             const rl = document.getElementById('req-list'); rl.innerHTML = "";
             s.forEach(r => { rl.innerHTML += `<div class="item"><b>${r.key}</b> <button onclick="acceptReq('${r.key}','${r.val()}')" style="margin-left:auto; background:var(--accent); color:white; border:none; padding:5px 10px; border-radius:5px;">Accept</button></div>`; });
         });
     }
+
+    function loadFeed() {
+        db.ref('feed').on('value', s => {
+            const feed = document.getElementById('feed-container'); feed.innerHTML = "";
+            let posts = []; s.forEach(p => { 
+                let data = p.val();
+                if(myFriends.includes(data.u)) posts.unshift(data); 
+            });
+            posts.forEach(p => {
+                feed.innerHTML += `<div class="post">
+                    <div class="post-header"><span>@${p.u}</span></div>
+                    <img src="${p.img}" class="post-img" onclick="zoom('${p.img}')">
+                </div>`;
+            });
+        });
+    }
+
+    function zoom(src) { document.getElementById('zoom-img').src = src; document.getElementById('zoom-view').style.display = 'flex'; }
 
     function openChat(name, rid) {
         activeRid = rid; document.getElementById('chat-title').innerText = name;
