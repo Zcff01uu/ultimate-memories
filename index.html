@@ -20,14 +20,14 @@
         .btn { background: var(--main-color); color: white; border: none; padding: 16px; border-radius: 15px; width: 100%; font-weight: bold; cursor: pointer; margin-top: 10px; font-size: 16px; }
         .hidden { display: none !important; }
 
-        /* Gallery */
-        #gallery { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; max-height: 350px; overflow-y: auto; padding: 10px; }
+        /* Gallery Page View */
+        #gallery { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; max-height: 450px; overflow-y: auto; padding: 10px; margin-top: 15px; }
         .img-container { overflow: hidden; border-radius: 12px; height: 120px; border: 2px solid white; box-shadow: 0 4px 10px rgba(0,0,0,0.1); cursor: pointer; }
         .img-card { width: 100%; height: 100%; object-fit: cover; }
 
-        /* Zoom Modal & Delete inside it */
+        /* Zoom Modal */
         #modal { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index: 10000; display:none; flex-direction: column; align-items:center; justify-content:center; }
-        #modal img { max-width: 90%; max-height: 70%; border-radius: 10px; box-shadow: 0 0 20px white; }
+        #modal img { max-width: 90%; max-height: 70%; border-radius: 10px; }
         .modal-btns { margin-top: 20px; display: flex; gap: 20px; }
         .del-btn-big { background: #ff4757; color: white; border: none; padding: 12px 25px; border-radius: 10px; cursor: pointer; font-weight: bold; }
         .close-btn { color: white; cursor: pointer; font-size: 14px; text-decoration: underline; }
@@ -59,17 +59,20 @@
         <p onclick="toggleMode()" id="toggle-text" style="cursor:pointer; color:var(--main-color); margin-top:15px; font-size:14px; text-decoration:underline;">New User? Create Account</p>
     </div>
 
-    <div id="screen-menu" class="box hidden animate__animated animate__fadeIn">
-        <h1>Our Memories 💖</h1>
-        <div style="background:#fff0f5; padding:15px; border-radius:20px; border:1px dashed var(--main-color);">
-            <input type="file" id="filePicker" style="font-size:12px; margin-bottom:10px; width:100%;">
+    <div id="screen-upload" class="box hidden animate__animated animate__fadeIn">
+        <h1>Save Memory 💖</h1>
+        <div style="background:#fff0f5; padding:15px; border-radius:20px; border:1px dashed var(--main-color); margin-bottom: 20px;">
+            <input type="file" id="filePicker" style="font-size: 12px; margin-bottom: 10px; width:100%;">
             <button class="btn" onclick="uploadImg()" id="up-btn">Upload Photo ✨</button>
         </div>
-        <button class="btn" style="background:#6c757d" onclick="toggleGallery()" id="view-btn">See Photo 📸</button>
-        <div id="gallery-wrapper" class="hidden">
-            <div id="gallery"></div>
-        </div>
-        <button onclick="location.reload()" style="background:none; border:none; color:#aaa; margin-top:20px; cursor:pointer;">Logout</button>
+        <button class="btn" style="background:#6c757d" onclick="openGalleryPage()">See Photo 📸</button>
+        <button onclick="location.reload()" style="background:none; border:none; color:#aaa; margin-top:20px; cursor:pointer; font-size: 12px;">Logout</button>
+    </div>
+
+    <div id="screen-gallery" class="box hidden animate__animated animate__fadeInRight" style="max-width: 500px;">
+        <h1>Your Gallery 📜</h1>
+        <div id="gallery"></div>
+        <button class="btn" style="background:#6c757d; margin-top:20px;" onclick="backToUpload()">⬅ Back to Upload</button>
     </div>
 
 <script>
@@ -85,12 +88,12 @@
     const db = firebase.database();
     let isLogin = true;
 
+    // Switch between Login/Register
     function toggleMode() {
         const box = document.getElementById('screen-auth');
         box.classList.remove('animate__zoomIn');
         void box.offsetWidth;
         box.classList.add('animate__zoomIn');
-        
         isLogin = !isLogin;
         document.getElementById('auth-title').innerText = isLogin ? "🔑 Login" : "📝 Register";
         document.getElementById('toggle-text').innerText = isLogin ? "New User? Create Account" : "Back to Login";
@@ -104,14 +107,26 @@
     function handleAuth() {
         const e = document.getElementById('email').value;
         const p = document.getElementById('pass').value;
-        if(isLogin) auth.signInWithEmailAndPassword(e, p).then(u => showDashboard(u.user.uid)).catch(err => alert(err.message));
-        else auth.createUserWithEmailAndPassword(e, p).then(u => showDashboard(u.user.uid)).catch(err => alert(err.message));
+        if(isLogin) auth.signInWithEmailAndPassword(e, p).then(u => showUploadPage(u.user.uid)).catch(err => alert(err.message));
+        else auth.createUserWithEmailAndPassword(e, p).then(u => showUploadPage(u.user.uid)).catch(err => alert(err.message));
     }
 
-    function showDashboard(uid) {
+    function showUploadPage(uid) {
         document.getElementById('screen-auth').classList.add('hidden');
-        document.getElementById('screen-menu').classList.remove('hidden');
+        document.getElementById('screen-upload').classList.remove('hidden');
+        document.getElementById('screen-gallery').classList.add('hidden');
         window.currentUid = uid;
+    }
+
+    function openGalleryPage() {
+        document.getElementById('screen-upload').classList.add('hidden');
+        document.getElementById('screen-gallery').classList.remove('hidden');
+        loadPhotos();
+    }
+
+    function backToUpload() {
+        document.getElementById('screen-gallery').classList.add('hidden');
+        document.getElementById('screen-upload').classList.remove('hidden');
     }
 
     async function uploadImg() {
@@ -124,17 +139,6 @@
         db.ref('pics/' + window.currentUid).push(data.data.url);
         document.getElementById('up-btn').innerText = "Upload Photo ✨";
         alert("Memory Saved! ❤️");
-    }
-
-    function toggleGallery() {
-        const wrap = document.getElementById('gallery-wrapper');
-        const btn = document.getElementById('view-btn');
-        if(wrap.classList.contains('hidden')) {
-            wrap.classList.remove('hidden'); btn.innerText = "Hide Photo 🙈";
-            loadPhotos();
-        } else {
-            wrap.classList.add('hidden'); btn.innerText = "See Photo 📸";
-        }
     }
 
     function loadPhotos() {
