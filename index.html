@@ -10,74 +10,78 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     
     <style>
+        /* --- Saare Purane Styles --- */
         :root { --main-color: #d63384; --bg-color: #fff5f8; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg-color); margin: 0; padding: 20px; display: flex; align-items: center; justify-content: center; min-height: 100vh; overflow-x: hidden; }
-        
         .box { width: 95%; max-width: 400px; background: white; padding: 30px; border-radius: 25px; box-shadow: 0 10px 40px rgba(214,51,132,0.15); border: 1px solid #ffdae9; text-align: center; position: relative; }
         h1 { color: var(--main-color); margin-bottom: 20px; font-size: 24px; }
-        
         .input-group { position: relative; width: 100%; margin: 12px 0; }
         input { width: 100%; padding: 15px; border: 1.5px solid #fbcfe8; border-radius: 12px; outline: none; box-sizing: border-box; background: #fff9fb; font-size: 16px; }
-        
         .toggle-pass { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); cursor: pointer; font-size: 18px; color: #888; z-index: 100; }
-        
         .btn { background: var(--main-color); color: white; border: none; padding: 16px; border-radius: 15px; width: 100%; font-weight: bold; cursor: pointer; margin-top: 10px; font-size: 16px; transition: 0.3s; }
         .btn:active { transform: scale(0.95); }
-        
         .hidden { display: none !important; }
-
-        #gallery { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; max-height: 400px; overflow-y: auto; padding: 10px; margin-top: 15px; }
-        .img-container { overflow: hidden; border-radius: 15px; height: 130px; border: 3px solid white; box-shadow: 0 5px 15px rgba(0,0,0,0.1); cursor: pointer; }
+        
+        #gallery { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; max-height: 250px; overflow-y: auto; padding: 10px; margin-top: 15px; }
+        .img-container { overflow: hidden; border-radius: 15px; height: 110px; border: 3px solid white; box-shadow: 0 5px 15px rgba(0,0,0,0.1); cursor: pointer; }
         .img-card { width: 100%; height: 100%; object-fit: cover; }
-
+        
         #modal { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index: 10000; display:none; flex-direction: column; align-items:center; justify-content:center; }
         #modal img { max-width: 90%; max-height: 70%; border-radius: 15px; border: 2px solid white; }
-        .modal-btns { margin-top: 25px; display: flex; gap: 20px; align-items: center; }
-        .del-btn { background: #ff4757; color: white; border: none; padding: 12px 25px; border-radius: 10px; cursor: pointer; font-weight: bold; }
-        .close-txt { color: white; cursor: pointer; text-decoration: underline; }
+        .del-btn { background: #ff4757; color: white; border: none; padding: 12px 25px; border-radius: 10px; cursor: pointer; font-weight: bold; margin-top:20px; }
+        .close-txt { color: white; cursor: pointer; text-decoration: underline; margin-top:15px; }
 
         .heart { position: fixed; color: var(--main-color); font-size: 18px; pointer-events: none; animation: fly 1s linear forwards; z-index: 9999; }
         @keyframes fly { 0% { transform: translate(0,0); opacity:1; } 100% { transform: translate(var(--x), var(--y)); opacity:0; } }
+
+        /* --- NAYE CHAT STYLES (Instagram Look) --- */
+        #chat-section { margin-top: 25px; border-top: 1px solid #eee; padding-top: 15px; text-align: left; }
+        #msg-container { height: 200px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; padding: 10px; background: #fdf2f7; border-radius: 15px; margin-bottom: 10px; }
+        .msg { padding: 8px 12px; border-radius: 15px; max-width: 80%; font-size: 14px; word-wrap: break-word; }
+        .msg.sent { background: var(--main-color); color: white; align-self: flex-end; border-bottom-right-radius: 2px; }
+        .msg.received { background: #eee; color: #333; align-self: flex-start; border-bottom-left-radius: 2px; }
+        .chat-input-area { display: flex; gap: 5px; }
+        #msgInput { margin: 0; padding: 12px; }
+        .send-btn { background:var(--main-color); color:white; border:none; padding:10px 15px; border-radius:12px; cursor:pointer; }
     </style>
 </head>
 <body>
 
     <div id="modal">
         <img id="zoomImg" src="">
-        <div class="modal-btns">
-            <button class="del-btn" id="deleteBtnAction">Delete Memory 🗑️</button>
-            <p class="close-txt" onclick="closeZoom()">Close ✖</p>
-        </div>
+        <button class="del-btn" id="deleteBtnAction">Delete Memory 🗑️</button>
+        <p class="close-txt" onclick="closeZoom()">Close ✖</p>
     </div>
 
     <div id="screen-auth" class="box animate__animated animate__zoomIn">
-        <h1 id="auth-title">🔑 Login</h1>
+        <h1 id="auth-title">🔑 Partner Login</h1>
         <div class="input-group">
-            <input type="text" id="username" placeholder="Enter Username">
+            <input type="text" id="username" placeholder="Username (Partner se same rakhein)">
         </div>
         <div class="input-group">
-            <input type="password" id="pass" placeholder="Enter Password">
+            <input type="password" id="pass" placeholder="Password">
             <span class="toggle-pass" onclick="togglePass()">👁️</span>
         </div>
         <button class="btn" onclick="handleAuth()">Access Vault</button>
-        
-        <p onclick="toggleMode()" id="toggle-text" style="cursor:pointer; color:var(--main-color); margin-top:20px; font-size:14px; font-weight:500;">New User? Create Account</p>
+        <p onclick="toggleMode()" id="toggle-text" style="cursor:pointer; color:var(--main-color); margin-top:20px; font-size:14px;">New Couple? Register</p>
     </div>
 
-    <div id="screen-upload" class="box hidden animate__animated animate__fadeIn">
-        <h1>Save Memory 💖</h1>
-        <div style="background:#fff0f5; padding:20px; border-radius:20px; border:2px dashed var(--main-color); margin-bottom: 20px;">
-            <input type="file" id="filePicker" style="font-size: 12px; margin-bottom: 10px; width:100%;">
-            <button class="btn" onclick="uploadImg()" id="up-btn">Upload to Cloud ✨</button>
-        </div>
-        <button class="btn" style="background:#6c757d" onclick="goToGallery()">See Photo 📸</button>
-        <button onclick="location.reload()" style="background:none; border:none; color:#bbb; margin-top:25px; cursor:pointer;">Logout</button>
-    </div>
-
-    <div id="screen-gallery" class="box hidden animate__animated animate__slideInRight">
-        <h1>Memories Gallery 📜</h1>
+    <div id="screen-main" class="box hidden animate__animated animate__fadeIn">
+        <h1>Our Space 💖</h1>
         <div id="gallery"></div>
-        <button class="btn" style="background:#6c757d; margin-top:20px;" onclick="goToUpload()">⬅ Back to Upload</button>
+        <input type="file" id="filePicker" style="font-size: 10px;">
+        <button class="btn" onclick="uploadImg()" id="up-btn" style="font-size: 12px; padding: 10px;">Upload Photo ✨</button>
+
+        <div id="chat-section">
+            <h3 style="font-size: 14px; color: var(--main-color); margin-bottom: 8px;">Private Chat 💬</h3>
+            <div id="msg-container"></div>
+            <div class="chat-input-area">
+                <input type="text" id="msgInput" placeholder="Message...">
+                <button onclick="sendMsg()" class="send-btn">➔</button>
+            </div>
+        </div>
+
+        <button onclick="location.reload()" style="background:none; border:none; color:#bbb; margin-top:25px; cursor:pointer; font-size:12px;">Logout</button>
     </div>
 
 <script>
@@ -93,11 +97,11 @@
     const db = firebase.database();
     
     let isLogin = true;
+    let currentUser = "";
 
     function toggleMode() {
         isLogin = !isLogin;
-        document.getElementById('auth-title').innerText = isLogin ? "🔑 Login" : "📝 Register";
-        document.getElementById('toggle-text').innerText = isLogin ? "New User? Create Account" : "Back to Login";
+        document.getElementById('auth-title').innerText = isLogin ? "🔑 Partner Login" : "📝 Register Couple";
     }
 
     function togglePass() {
@@ -108,88 +112,73 @@
     function handleAuth() {
         const user = document.getElementById('username').value.trim();
         const pass = document.getElementById('pass').value;
-
-        if(!user || !pass) return alert("Pehle Username aur Password bhariye!");
-
-        // Firebase Auth username support nahi karta, isliye hum "username@app.com" format use karenge peeche se
+        if(!user || !pass) return alert("Fill details!");
+        currentUser = user;
         const fakeEmail = user + "@memories.com";
 
         if(isLogin) {
             auth.signInWithEmailAndPassword(fakeEmail, pass)
-                .then(u => showUploadScreen(u.user.uid))
-                .catch(err => alert("Ghalat Username ya Password!"));
+                .then(u => {
+                    document.getElementById('screen-auth').classList.add('hidden');
+                    document.getElementById('screen-main').classList.remove('hidden');
+                    loadData(u.user.uid);
+                }).catch(e => alert("Wrong details!"));
         } else {
             auth.createUserWithEmailAndPassword(fakeEmail, pass)
-                .then(() => {
-                    alert("Account Created! Swagat hai " + user + ". 🥳");
-                    toggleMode();
-                })
-                .catch(err => alert("Error: " + err.message));
+                .then(() => { alert("Couple Registered!"); toggleMode(); })
+                .catch(e => alert(e.message));
         }
     }
 
-    function showUploadScreen(uid) {
+    function loadData(uid) {
         window.currentUid = uid;
-        document.getElementById('screen-auth').classList.add('hidden');
-        document.getElementById('screen-upload').classList.remove('hidden');
-    }
+        db.ref('photos/' + uid).on('value', snap => {
+            const gal = document.getElementById('gallery');
+            gal.innerHTML = "";
+            snap.forEach(child => {
+                gal.innerHTML = `<div class="img-container"><img src="${child.val()}" class="img-card" onclick="openZoom('${child.val()}', '${child.key}')"></div>` + gal.innerHTML;
+            });
+        });
 
-    function goToGallery() {
-        document.getElementById('screen-upload').classList.add('hidden');
-        document.getElementById('screen-gallery').classList.remove('hidden');
-        loadGallery();
-    }
-
-    function goToUpload() {
-        document.getElementById('screen-gallery').classList.add('hidden');
-        document.getElementById('screen-upload').classList.remove('hidden');
+        // NAYA CHAT LISTENER
+        db.ref('chats/' + uid).on('value', snap => {
+            const container = document.getElementById('msg-container');
+            container.innerHTML = "";
+            snap.forEach(child => {
+                const data = child.val();
+                const div = document.createElement('div');
+                div.className = `msg ${data.user === currentUser ? 'sent' : 'received'}`;
+                div.innerText = data.text;
+                container.appendChild(div);
+            });
+            container.scrollTop = container.scrollHeight;
+        });
     }
 
     async function uploadImg() {
         const file = document.getElementById('filePicker').files[0];
-        if(!file) return alert("Select a photo first!");
-        
+        if(!file) return alert("Select photo!");
         const btn = document.getElementById('up-btn');
-        btn.innerText = "Uploading... ⏳";
-        btn.disabled = true;
-
+        btn.innerText = "Saving...";
         const formData = new FormData();
         formData.append("image", file);
-
-        try {
-            const res = await fetch("https://api.imgbb.com/1/upload?key=cb53c38c41a5ce7d642d1152d306da9a", {
-                method: "POST",
-                body: formData
-            });
-            const data = await res.json();
-            // Photos ko database mein save karna
-            db.ref('photos/' + window.currentUid).push(data.data.url);
-            alert("Memory Saved! ❤️");
-        } catch (e) {
-            alert("Upload failed.");
-        } finally {
-            btn.innerText = "Upload to Cloud ✨";
-            btn.disabled = false;
-        }
+        const res = await fetch("https://api.imgbb.com/1/upload?key=cb53c38c41a5ce7d642d1152d306da9a", { method: "POST", body: formData });
+        const data = await res.json();
+        db.ref('photos/' + window.currentUid).push(data.data.url);
+        btn.innerText = "Upload Photo ✨";
     }
 
-    function loadGallery() {
-        const galDiv = document.getElementById('gallery');
-        db.ref('photos/' + window.currentUid).on('value', snap => {
-            galDiv.innerHTML = "";
-            snap.forEach(child => {
-                const imgWrap = document.createElement('div');
-                imgWrap.className = "img-container animate__animated animate__fadeIn";
-                imgWrap.innerHTML = `<img src="${child.val()}" class="img-card" onclick="openZoom('${child.val()}', '${child.key}')">`;
-                galDiv.prepend(imgWrap);
-            });
-        });
+    // NAYA CHAT FUNCTION
+    function sendMsg() {
+        const text = document.getElementById('msgInput').value;
+        if(!text) return;
+        db.ref('chats/' + window.currentUid).push({ user: currentUser, text: text });
+        document.getElementById('msgInput').value = "";
     }
 
     function openZoom(url, key) {
         document.getElementById('zoomImg').src = url;
         document.getElementById('modal').style.display = "flex";
-        
         document.getElementById('deleteBtnAction').onclick = function() {
             if(confirm("Delete kar dein? 🥺")) {
                 db.ref('photos/' + window.currentUid + '/' + key).remove();
@@ -197,11 +186,9 @@
             }
         };
     }
+    function closeZoom() { document.getElementById('modal').style.display = "none"; }
 
-    function closeZoom() {
-        document.getElementById('modal').style.display = "none";
-    }
-
+    // HEARTS ANIMATION WAPAS AA GAYI
     document.addEventListener('mousemove', (e) => {
         if(Math.random() > 0.9) {
             const heart = document.createElement('div');
