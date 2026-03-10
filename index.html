@@ -12,21 +12,25 @@
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; overflow: hidden; }
         .container { width: 100%; max-width: 450px; background: white; height: 100vh; position: relative; margin: 0 auto; display: flex; flex-direction: column; }
         
+        /* Auth Screen Design */
+        #screen-auth { padding: 50px 30px; text-align: center; background: white; height: 100%; }
+        .logo-text { font-family: 'Brush Script MT', cursive; font-size: 42px; color: var(--accent); margin-bottom: 30px; }
+        .input-field { width: 90%; padding: 14px; border: 1px solid #ffc1e3; border-radius: 10px; background: #fdf2f7; outline: none; margin-bottom: 15px; }
+        .btn-primary { width: 96%; padding: 14px; background: var(--accent); color: white; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; }
+
+        /* App UI */
         header { padding: 15px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; background: white; }
-        .logo-text { font-family: 'Brush Script MT', cursive; font-size: 28px; color: var(--accent); margin: 0; }
-        
         .view { flex: 1; overflow-y: auto; padding-bottom: 70px; }
-        .inbox-item { padding: 15px; border-bottom: 1px solid #f9f9f9; display: flex; align-items: center; position: relative; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+        .inbox-item { padding: 15px; border-bottom: 1px solid #f9f9f9; display: flex; align-items: center; position: relative; cursor: pointer; }
         .avatar { width: 45px; height: 45px; background: #ffd1dc; border-radius: 50%; margin-right: 15px; display: flex; align-items: center; justify-content: center; font-size: 20px; }
         
-        /* Red Dot - Now only shows on NEW message */
+        /* Red Dot Only for NEW */
         .msg-dot { width: 10px; height: 10px; background: #ff3b7b; border-radius: 50%; position: absolute; right: 25px; display: none; border: 2px solid white; }
         .has-new .msg-dot { display: block; }
-
         .heart-btn { position: relative; font-size: 22px; cursor: pointer; }
         .heart-dot { position: absolute; top: -2px; right: -2px; width: 10px; height: 10px; background: red; border-radius: 50%; border: 2px solid white; display: none; }
 
-        /* Menu for Hold */
+        /* Menu */
         #hold-menu { position: fixed; bottom: -100%; left: 0; width: 100%; background: white; border-radius: 20px 20px 0 0; box-shadow: 0 -5px 20px rgba(0,0,0,0.1); transition: 0.3s; z-index: 2000; padding: 20px 0; text-align: center; }
         #hold-menu.show { bottom: 0; }
         .menu-opt { padding: 15px; font-size: 18px; border-bottom: 1px solid #eee; cursor: pointer; }
@@ -35,63 +39,69 @@
         nav { position: absolute; bottom: 0; width: 100%; background: white; border-top: 1px solid #eee; display: flex; justify-content: space-around; padding: 15px 0; }
         .nav-icon { font-size: 24px; color: #ccc; cursor: pointer; }
         .nav-icon.active { color: var(--accent); }
-
         .hidden { display: none !important; }
-        
+
+        /* Chat */
         #chat-screen { position: fixed; top: 0; width: 100%; max-width: 450px; height: 100%; background: white; z-index: 1000; display: none; flex-direction: column; }
         #messages { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 8px; background: #fffafa; }
-        .msg { padding: 10px 15px; border-radius: 18px; max-width: 70%; font-size: 14px; }
+        .msg { padding: 10px 15px; border-radius: 18px; max-width: 70%; font-size: 14px; word-wrap: break-word; }
         .sent { align-self: flex-end; background: var(--accent); color: white; }
-        .received { align-self: flex-start; background: #efefef; }
+        .received { align-self: flex-start; background: #efefef; color: #333; }
     </style>
 </head>
 <body oncontextmenu="return false;">
 
 <div class="container">
-    <header>
+    <div id="screen-auth" class="hidden">
         <div class="logo-text">Memories</div>
-        <div class="heart-btn" onclick="tab('notif')">
-            ❤️ <div id="heart-dot" class="heart-dot"></div>
+        <input type="text" id="email" class="input-field" placeholder="Username">
+        <input type="password" id="pass" class="input-field" placeholder="Password">
+        <button class="btn-primary" onclick="authProcess()">Enter Memories</button>
+        <p id="auth-err" style="color:red; font-size:12px; margin-top:10px;"></p>
+    </div>
+
+    <div id="screen-app" class="hidden">
+        <header>
+            <div class="logo-text" style="font-size: 24px;">Memories</div>
+            <div class="heart-btn" onclick="tab('notif')">
+                ❤️ <div id="heart-dot" class="heart-dot"></div>
+            </div>
+        </header>
+        <div id="view-home" class="view">
+            <h4 style="margin: 15px;">Messages</h4>
+            <div id="inbox-list"></div>
         </div>
-    </header>
-
-    <div id="view-home" class="view">
-        <h4 style="margin: 15px 15px 5px;">Messages</h4>
-        <div id="inbox-list"></div>
-    </div>
-
-    <div id="view-notif" class="view hidden">
-        <h4 style="margin: 15px;">Requests</h4>
-        <div id="req-list" style="padding: 0 15px;"></div>
-    </div>
-
-    <div id="view-profile" class="view hidden" style="text-align:center; padding-top:50px;">
-        <div class="avatar" style="width:80px; height:80px; margin:0 auto; font-size:40px;">👤</div>
-        <h2 id="my-user">User</h2>
-        <button onclick="location.reload()" style="color:red; background:none; border:none; margin-top:50px; cursor:pointer;">Logout</button>
-    </div>
-
-    <nav>
-        <div onclick="tab('home')" id="nav-home" class="nav-icon active">🏠</div>
-        <div onclick="tab('profile')" id="nav-profile" class="nav-icon">👤</div>
-    </nav>
-
-    <div class="overlay" id="overlay" onclick="closeMenu()"></div>
-    <div id="hold-menu">
-        <div class="menu-opt" onclick="mute()">Mute</div>
-        <div class="menu-opt" style="color:red; border:none;" onclick="delChat()">Delete Chat</div>
+        <div id="view-notif" class="view hidden">
+            <h4 style="margin: 15px;">Requests</h4>
+            <div id="req-list" style="padding: 0 15px;"></div>
+        </div>
+        <div id="view-profile" class="view hidden" style="text-align:center; padding-top:50px;">
+            <div class="avatar" style="width:80px; height:80px; margin:0 auto; font-size:40px;">👤</div>
+            <h2 id="my-user-display">User</h2>
+            <button onclick="logout()" style="color:red; background:none; border:none; margin-top:50px; cursor:pointer;">Logout</button>
+        </div>
+        <nav>
+            <div onclick="tab('home')" id="nav-home" class="nav-icon active">🏠</div>
+            <div onclick="tab('profile')" id="nav-profile" class="nav-icon">👤</div>
+        </nav>
     </div>
 
     <div id="chat-screen">
         <div style="padding:15px; border-bottom:1px solid #eee; display:flex; align-items:center; gap:10px;">
             <span onclick="closeChat()" style="cursor:pointer; font-size:24px;">←</span>
-            <b id="chat-name">User</b>
+            <b id="chat-title">User</b>
         </div>
         <div id="messages"></div>
         <div style="padding:10px; display:flex; gap:5px; border-top:1px solid #eee;">
             <input type="text" id="msg-input" placeholder="Message..." style="flex:1; padding:12px; border-radius:20px; border:1px solid #eee; outline:none;">
-            <button onclick="send()" style="border:none; background:none; color:var(--accent); font-weight:bold;">Send</button>
+            <button onclick="sendMsg()" style="border:none; background:none; color:var(--accent); font-weight:bold;">Send</button>
         </div>
+    </div>
+
+    <div class="overlay" id="overlay" onclick="closeMenu()"></div>
+    <div id="hold-menu">
+        <div class="menu-opt" onclick="alert('Muted')">Mute</div>
+        <div class="menu-opt" style="color:red;" onclick="deleteChat()">Delete Chat</div>
     </div>
 </div>
 
@@ -105,40 +115,56 @@
     firebase.initializeApp(config);
     const auth = firebase.auth(), db = firebase.database();
 
-    let myU = "", myId = "", activeRoom = "", selectedUser = "", holdTimer;
+    let myU = "", myId = "", activeRoom = "", selectedU = "", holdT;
 
+    // Fixed Auth Listener
     auth.onAuthStateChanged(user => {
         if(user) {
             db.ref('users').orderByValue().equalTo(user.uid).once('value', s => {
-                myU = Object.keys(s.val())[0]; myId = user.uid;
-                document.getElementById('my-user').innerText = myU;
-                startApp();
+                if(s.exists()){
+                    myU = Object.keys(s.val())[0]; myId = user.uid;
+                    document.getElementById('my-user-display').innerText = myU;
+                    document.getElementById('screen-auth').classList.add('hidden');
+                    document.getElementById('screen-app').classList.remove('hidden');
+                    startApp();
+                }
             });
         } else {
-            let u = prompt("Username:").toLowerCase();
-            let p = prompt("Password:");
-            auth.signInWithEmailAndPassword(u+"@m.com", p).catch(() => {
-                auth.createUserWithEmailAndPassword(u+"@m.com", p).then(r => db.ref('users/'+u).set(r.user.uid));
-            });
+            document.getElementById('screen-auth').classList.remove('hidden');
+            document.getElementById('screen-app').classList.add('hidden');
         }
     });
 
+    async function authProcess() {
+        let u = document.getElementById('email').value.toLowerCase().trim();
+        let p = document.getElementById('pass').value;
+        if(!u || p.length < 6) return alert("Fill all (Pass 6+ chars)");
+        try {
+            await auth.signInWithEmailAndPassword(u+"@m.com", p);
+        } catch(e) {
+            if(e.code === 'auth/user-not-found') {
+                let res = await auth.createUserWithEmailAndPassword(u+"@m.com", p);
+                await db.ref('users/'+u).set(res.user.uid);
+            } else alert(e.message);
+        }
+    }
+
     function startApp() {
+        // Inbox & Dots
         db.ref('partners/' + myId).on('value', s => {
             const list = document.getElementById('inbox-list'); list.innerHTML = "";
             s.forEach(p => {
                 const name = p.key, rid = p.val().sId;
                 const div = document.createElement('div');
-                div.className = 'inbox-item';
-                div.id = 'inbox-'+name;
-                div.innerHTML = `<div class="avatar">👤</div><div><b>${name}</b><br><small>Tap to chat</small></div><div class="msg-dot"></div>`;
+                div.className = 'inbox-item'; div.id = 'inbox-'+name;
+                div.innerHTML = `<div class="avatar">👤</div><div><b>${name}</b><br><small>Active</small></div><div class="msg-dot"></div>`;
                 
-                div.addEventListener('touchstart', () => { holdTimer = setTimeout(() => openMenu(name), 800); });
-                div.addEventListener('touchend', () => { clearTimeout(holdTimer); });
+                div.addEventListener('touchstart', () => { holdT = setTimeout(() => { selectedU = name; document.getElementById('hold-menu').classList.add('show'); document.getElementById('overlay').style.display='block'; }, 800); });
+                div.addEventListener('touchend', () => clearTimeout(holdT));
                 div.onclick = () => openChat(name, rid);
                 list.appendChild(div);
 
-                // FIXED DOT LOGIC: Only trigger for NEW messages when NOT in chat
+                // Real-time Dot Fix
                 db.ref('chats/'+rid).limitToLast(1).on('child_added', snap => {
                     if(snap.val().u !== myU && activeRoom !== rid) {
                         document.getElementById('inbox-'+name).classList.add('has-new');
@@ -147,40 +173,22 @@
             });
         });
 
+        // Request Dot
         db.ref('requests/' + myId).on('value', s => {
             document.getElementById('heart-dot').style.display = s.exists() ? 'block' : 'none';
             const rl = document.getElementById('req-list'); rl.innerHTML = "";
             s.forEach(r => {
                 rl.innerHTML += `<div style="display:flex; justify-content:space-between; padding:15px; border-bottom:1px solid #eee;">
-                    <b>${r.key}</b> <button onclick="accept('${r.key}','${r.val()}')">Accept</button>
+                    <b>${r.key}</b> <button onclick="acceptReq('${r.key}','${r.val()}')">Accept</button>
                 </div>`;
             });
         });
     }
 
-    function openMenu(name) { selectedUser = name; document.getElementById('hold-menu').classList.add('show'); document.getElementById('overlay').style.display = 'block'; }
-    function closeMenu() { document.getElementById('hold-menu').classList.remove('show'); document.getElementById('overlay').style.display = 'none'; }
-    function delChat() { db.ref(`partners/${myId}/${selectedUser}`).remove(); closeMenu(); }
-    function mute() { alert("Muted"); closeMenu(); }
-
-    function tab(t) {
-        document.querySelectorAll('.view').forEach(v => v.classList.add('hidden'));
-        document.querySelectorAll('.nav-icon').forEach(i => i.classList.remove('active'));
-        document.getElementById('view-'+t).classList.remove('hidden');
-        if(t !== 'notif') document.getElementById('nav-'+t).classList.add('active');
-    }
-
-    function accept(n, id) {
-        let room = myId < id ? myId+id : id+myId;
-        db.ref(`partners/${myId}/${n}`).set({ sId: room });
-        db.ref(`partners/${id}/${myU}`).set({ sId: room });
-        db.ref(`requests/${myId}/${n}`).remove();
-    }
-
     function openChat(n, rid) {
         activeRoom = rid;
         document.getElementById('inbox-'+n).classList.remove('has-new');
-        document.getElementById('chat-name').innerText = n;
+        document.getElementById('chat-title').innerText = n;
         document.getElementById('chat-screen').style.display = 'flex';
         db.ref('chats/'+rid).on('value', s => {
             const mBox = document.getElementById('messages'); mBox.innerHTML = "";
@@ -188,13 +196,30 @@
             mBox.scrollTop = mBox.scrollHeight;
         });
     }
-    function closeChat() { activeRoom = ""; document.getElementById('chat-screen').style.display = 'none'; }
-    function send() {
+
+    function sendMsg() {
         let t = document.getElementById('msg-input').value;
         if(t && activeRoom) {
             db.ref('chats/'+activeRoom).push({ u: myU, t: t });
             document.getElementById('msg-input').value = "";
         }
+    }
+
+    function closeChat() { activeRoom = ""; document.getElementById('chat-screen').style.display = 'none'; }
+    function closeMenu() { document.getElementById('hold-menu').classList.remove('show'); document.getElementById('overlay').style.display = 'none'; }
+    function deleteChat() { db.ref(`partners/${myId}/${selectedU}`).remove(); closeMenu(); }
+    function logout() { auth.signOut(); }
+    function tab(t) {
+        document.querySelectorAll('.view').forEach(v => v.classList.add('hidden'));
+        document.querySelectorAll('.nav-icon').forEach(i => i.classList.remove('active'));
+        document.getElementById('view-'+t).classList.remove('hidden');
+        if(t !== 'notif') document.getElementById('nav-'+t).classList.add('active');
+    }
+    function acceptReq(n, id) {
+        let room = myId < id ? myId+id : id+myId;
+        db.ref(`partners/${myId}/${n}`).set({ sId: room });
+        db.ref(`partners/${id}/${myU}`).set({ sId: room });
+        db.ref(`requests/${myId}/${n}`).remove();
     }
 </script>
 </body>
